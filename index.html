@@ -335,6 +335,7 @@
 <!-- HOME SCREEN -->
 <div id="home-screen">
   <div class="home-wrap">
+    <!-- HEADER -->
     <div class="home-header">
       <div class="home-logo">SET</div>
       <div class="home-user">
@@ -347,28 +348,74 @@
       </div>
     </div>
 
+    <!-- GRID CONTENT -->
     <div class="home-grid">
       <!-- Stats card -->
       <div class="home-card">
         <div class="home-card-title">📊 Your Stats</div>
         <div id="home-stats-body">
-          <div class="home-stat-row"><span class="home-stat-label">Games played</span><span class="home-stat-val" id="hs-games">—</span></div>
-          <div class="home-stat-row"><span class="home-stat-label">Best score</span><span class="home-stat-val" id="hs-best">—</span></div>
-          <div class="home-stat-row"><span class="home-stat-label">Best time</span><span class="home-stat-val" id="hs-time">—</span></div>
-          <div class="home-stat-row"><span class="home-stat-label">Today</span><span class="home-stat-val" id="hs-today">—</span></div>
-          <div class="home-stat-row"><span class="home-stat-label">Medals earned</span><span class="home-stat-val" id="hs-medals">—</span></div>
+          <div class="home-stat-row">
+            <span class="home-stat-label">Games played</span>
+            <span class="home-stat-val" id="hs-games">—</span>
+          </div>
+          <div class="home-stat-row">
+            <span class="home-stat-label">Best score</span>
+            <span class="home-stat-val" id="hs-best">—</span>
+          </div>
+          <div class="home-stat-row">
+            <span class="home-stat-label">Best time</span>
+            <span class="home-stat-val" id="hs-time">—</span>
+          </div>
+          <div class="home-stat-row">
+            <span class="home-stat-label">Today</span>
+            <span class="home-stat-val" id="hs-today">—</span>
+          </div>
+          <div class="home-stat-row">
+            <span class="home-stat-label">Medals earned</span>
+            <span class="home-stat-val" id="hs-medals">—</span>
+          </div>
         </div>
       </div>
 
-      <!-- Medals card — text labels restored -->
+      <!-- Medals card -->
       <div class="home-card">
         <div class="home-card-title">🏅 Medals</div>
         <div class="home-medal-grid" id="home-medals-grid">
-          <div class="home-medal-tile" id="hm-bronze"><span class="medal-icon">🥉</span><div><span class="medal-name">Bronze Solver</span><span class="medal-desc">Complete the puzzle</span></div></div>
-          <div class="home-medal-tile" id="hm-silver"><span class="medal-icon">🥈</span><div><span class="medal-name">Silver Solver</span><span class="medal-desc">Finish under 5 min</span></div></div>
-          <div class="home-medal-tile" id="hm-gold">  <span class="medal-icon">🥇</span><div><span class="medal-name">Gold Solver</span><span class="medal-desc">Finish under 2 min</span></div></div>
-          <div class="home-medal-tile" id="hm-master"><span class="medal-icon">🏆</span><div><span class="medal-name">Master Solver</span><span class="medal-desc">Finish under 1 min</span></div></div>
-          <div class="home-medal-tile" id="hm-legend" style="min-width:100%"><span class="medal-icon">⭐</span><div><span class="medal-name">Legend Solver</span><span class="medal-desc">Perfect accuracy — no wrong guesses</span></div></div>
+          <div class="home-medal-tile" id="hm-bronze">
+            <span class="medal-icon">🥉</span>
+            <div>
+              <span class="medal-name">Bronze Solver</span>
+              <span class="medal-desc">Complete the puzzle</span>
+            </div>
+          </div>
+          <div class="home-medal-tile" id="hm-silver">
+            <span class="medal-icon">🥈</span>
+            <div>
+              <span class="medal-name">Silver Solver</span>
+              <span class="medal-desc">Finish under 5 min</span>
+            </div>
+          </div>
+          <div class="home-medal-tile" id="hm-gold">
+            <span class="medal-icon">🥇</span>
+            <div>
+              <span class="medal-name">Gold Solver</span>
+              <span class="medal-desc">Finish under 2 min</span>
+            </div>
+          </div>
+          <div class="home-medal-tile" id="hm-master">
+            <span class="medal-icon">🏆</span>
+            <div>
+              <span class="medal-name">Master Solver</span>
+              <span class="medal-desc">Finish under 1 min</span>
+            </div>
+          </div>
+          <div class="home-medal-tile" id="hm-legend" style="min-width:100%">
+            <span class="medal-icon">⭐</span>
+            <div>
+              <span class="medal-name">Legend Solver</span>
+              <span class="medal-desc">Perfect accuracy — no wrong guesses</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -378,13 +425,17 @@
         <div id="home-lb-body"></div>
       </div>
 
-      <!-- Dev panel card — collapsible, only shown for dev role -->
+      <!-- Developer panel card (hidden by default) -->
       <div class="home-card home-full-width" id="home-dev-card" style="display:none;border-color:rgba(0,229,255,0.2)">
-        <div class="home-card-title" style="color:#00e5ff;display:flex;align-items:center;justify-content:space-between;margin-bottom:0">
+        <div class="home-card-title" style="color:#00e5ff; display:flex; align-items:center; justify-content:space-between; margin-bottom:0">
           <span>🧑‍💻 Dev Tools</span>
-          <button class="home-dev-collapse-btn" id="home-dev-toggle" onclick="homeDevToggle()">▾</button>
+          <button class="home-dev-collapse-btn">Toggle</button>
         </div>
-
+        <!-- dev panel content goes here -->
+      </div>
+    </div>
+  </div>
+</div>
         <div id="home-dev-body" style="margin-top:16px">
 
           <!-- Players group -->
