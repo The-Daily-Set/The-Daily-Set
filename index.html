@@ -172,29 +172,12 @@
   .home-stat-row:last-child { border-bottom:none; }
   .home-stat-label { font-size:0.72rem; color:var(--muted); }
   .home-stat-val { font-size:0.9rem; color:var(--text); font-weight:500; }
-  .home-medal-grid { display:flex; gap:10px; flex-wrap:wrap; }
-  .home-medal-tile { padding:10px 12px; border-radius:10px; display:flex; align-items:center; gap:10px; font-size:0.68rem; opacity:0.25; transition:opacity 0.2s, transform 0.15s; background:var(--bg); border:1px solid var(--border); flex:1; min-width:140px; }
+  .home-medal-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .home-medal-tile { padding:10px 12px; border-radius:10px; display:flex; align-items:center; gap:8px; font-size:0.68rem; opacity:0.35; transition:opacity 0.2s; }
   .home-medal-tile.earned { opacity:1; }
-  .home-medal-tile.earned:hover { transform:translateY(-1px); }
-  .home-medal-tile .medal-icon { font-size:1.5rem; flex-shrink:0; }
-  .home-medal-tile .medal-name { font-weight:500; display:block; margin-bottom:2px; color:var(--text); }
-  .home-medal-tile .medal-desc { opacity:0.6; font-size:0.6rem; display:block; }
-  .home-medal-tile .medal-count { margin-left:auto; font-size:0.58rem; color:var(--gold); opacity:0.8; flex-shrink:0; }
-
-  /* HOME DEV PANEL */
-  .home-dev-group { margin-bottom:14px; }
-  .home-dev-group-label { font-size:0.58rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:8px; }
-  .home-dev-btns { display:flex; flex-wrap:wrap; gap:6px; }
-  .home-dev-btn { display:flex; align-items:center; gap:6px; padding:7px 12px; border-radius:8px; background:var(--bg); border:1px solid rgba(0,229,255,0.2); color:var(--text); font-family:'DM Mono',monospace; font-size:0.68rem; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
-  .home-dev-btn:hover { background:rgba(0,229,255,0.08); border-color:rgba(0,229,255,0.5); transform:translateY(-1px); }
-  .home-dev-btn.danger { border-color:rgba(232,69,69,0.25); }
-  .home-dev-btn.danger:hover { background:rgba(232,69,69,0.08); border-color:rgba(232,69,69,0.5); }
-  .home-dev-input-row { display:flex; gap:6px; align-items:center; margin-bottom:8px; }
-  .home-dev-input { flex:1; background:var(--bg); border:1px solid rgba(0,229,255,0.2); border-radius:7px; padding:7px 10px; color:var(--text); font-family:'DM Mono',monospace; font-size:0.72rem; outline:none; transition:border-color 0.15s; }
-  .home-dev-input:focus { border-color:#00e5ff; }
-  .home-dev-select { background:var(--bg); border:1px solid rgba(0,229,255,0.2); border-radius:7px; padding:7px 8px; color:var(--text); font-family:'DM Mono',monospace; font-size:0.72rem; outline:none; }
-  .home-dev-collapse-btn { background:none; border:none; color:#00e5ff; cursor:pointer; font-size:0.85rem; padding:0 2px; line-height:1; opacity:0.8; transition:opacity 0.15s; }
-  .home-dev-collapse-btn:hover { opacity:1; }
+  .home-medal-tile .medal-icon { font-size:1.3rem; flex-shrink:0; }
+  .home-medal-tile .medal-name { font-weight:500; display:block; margin-bottom:1px; }
+  .home-medal-tile .medal-desc { opacity:0.65; font-size:0.6rem; }
   .home-lb-row { display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:8px; background:var(--bg); margin-bottom:5px; font-size:0.68rem; }
   .home-lb-rank { width:20px; color:var(--muted); text-align:center; flex-shrink:0; }
   .home-lb-date { color:var(--muted); flex:1; }
@@ -335,7 +318,6 @@
 <!-- HOME SCREEN -->
 <div id="home-screen">
   <div class="home-wrap">
-    <!-- HEADER -->
     <div class="home-header">
       <div class="home-logo">SET</div>
       <div class="home-user">
@@ -348,32 +330,16 @@
       </div>
     </div>
 
-    <!-- GRID CONTENT -->
     <div class="home-grid">
       <!-- Stats card -->
       <div class="home-card">
         <div class="home-card-title">📊 Your Stats</div>
         <div id="home-stats-body">
-          <div class="home-stat-row">
-            <span class="home-stat-label">Games played</span>
-            <span class="home-stat-val" id="hs-games">—</span>
-          </div>
-          <div class="home-stat-row">
-            <span class="home-stat-label">Best score</span>
-            <span class="home-stat-val" id="hs-best">—</span>
-          </div>
-          <div class="home-stat-row">
-            <span class="home-stat-label">Best time</span>
-            <span class="home-stat-val" id="hs-time">—</span>
-          </div>
-          <div class="home-stat-row">
-            <span class="home-stat-label">Today</span>
-            <span class="home-stat-val" id="hs-today">—</span>
-          </div>
-          <div class="home-stat-row">
-            <span class="home-stat-label">Medals earned</span>
-            <span class="home-stat-val" id="hs-medals">—</span>
-          </div>
+          <div class="home-stat-row"><span class="home-stat-label">Games played</span><span class="home-stat-val" id="hs-games">—</span></div>
+          <div class="home-stat-row"><span class="home-stat-label">Best score</span><span class="home-stat-val" id="hs-best">—</span></div>
+          <div class="home-stat-row"><span class="home-stat-label">Best time</span><span class="home-stat-val" id="hs-time">—</span></div>
+          <div class="home-stat-row"><span class="home-stat-label">Today</span><span class="home-stat-val" id="hs-today">—</span></div>
+          <div class="home-stat-row"><span class="home-stat-label">Medals earned</span><span class="home-stat-val" id="hs-medals">—</span></div>
         </div>
       </div>
 
@@ -381,40 +347,25 @@
       <div class="home-card">
         <div class="home-card-title">🏅 Medals</div>
         <div class="home-medal-grid" id="home-medals-grid">
-          <div class="home-medal-tile" id="hm-bronze">
+          <div class="home-medal-tile medal-bronze" id="hm-bronze">
             <span class="medal-icon">🥉</span>
-            <div>
-              <span class="medal-name">Bronze Solver</span>
-              <span class="medal-desc">Complete the puzzle</span>
-            </div>
+            <div><span class="medal-name">Bronze Solver</span><span class="medal-desc">Complete the puzzle</span></div>
           </div>
-          <div class="home-medal-tile" id="hm-silver">
+          <div class="home-medal-tile medal-silver" id="hm-silver">
             <span class="medal-icon">🥈</span>
-            <div>
-              <span class="medal-name">Silver Solver</span>
-              <span class="medal-desc">Finish under 5 min</span>
-            </div>
+            <div><span class="medal-name">Silver Solver</span><span class="medal-desc">Finish under 5 min</span></div>
           </div>
-          <div class="home-medal-tile" id="hm-gold">
+          <div class="home-medal-tile medal-gold" id="hm-gold">
             <span class="medal-icon">🥇</span>
-            <div>
-              <span class="medal-name">Gold Solver</span>
-              <span class="medal-desc">Finish under 2 min</span>
-            </div>
+            <div><span class="medal-name">Gold Solver</span><span class="medal-desc">Finish under 2 min</span></div>
           </div>
-          <div class="home-medal-tile" id="hm-master">
+          <div class="home-medal-tile medal-master" id="hm-master">
             <span class="medal-icon">🏆</span>
-            <div>
-              <span class="medal-name">Master Solver</span>
-              <span class="medal-desc">Finish under 1 min</span>
-            </div>
+            <div><span class="medal-name">Master Solver</span><span class="medal-desc">Finish under 1 min</span></div>
           </div>
-          <div class="home-medal-tile" id="hm-legend" style="min-width:100%">
+          <div class="home-medal-tile medal-legend" id="hm-legend" style="grid-column:1/-1">
             <span class="medal-icon">⭐</span>
-            <div>
-              <span class="medal-name">Legend Solver</span>
-              <span class="medal-desc">Perfect accuracy — no wrong guesses</span>
-            </div>
+            <div><span class="medal-name">Legend Solver</span><span class="medal-desc">Perfect accuracy — no wrong guesses</span></div>
           </div>
         </div>
       </div>
@@ -423,64 +374,6 @@
       <div class="home-card home-full-width">
         <div class="home-card-title">🏆 Personal Best Scores</div>
         <div id="home-lb-body"></div>
-      </div>
-
-      <!-- Developer panel card (hidden by default) -->
-      <div class="home-card home-full-width" id="home-dev-card" style="display:none;border-color:rgba(0,229,255,0.2)">
-        <div class="home-card-title" style="color:#00e5ff; display:flex; align-items:center; justify-content:space-between; margin-bottom:0">
-          <span>🧑‍💻 Dev Tools</span>
-          <button class="home-dev-collapse-btn">Toggle</button>
-        </div>
-        <!-- dev panel content goes here -->
-      </div>
-    </div>
-  </div>
-</div>
-        <div id="home-dev-body" style="margin-top:16px">
-
-          <!-- Players group -->
-          <div class="home-dev-group">
-            <div class="home-dev-group-label">👤 Players</div>
-            <div class="home-dev-input-row">
-              <input class="home-dev-input" id="home-dev-user" placeholder="username" />
-              <select class="home-dev-select" id="home-dev-role">
-                <option value="player">player</option>
-                <option value="dev">dev</option>
-              </select>
-            </div>
-            <div class="home-dev-btns">
-              <button class="home-dev-btn" onclick="homeDevSetRole()">⬆️ Set Role</button>
-              <button class="home-dev-btn" onclick="homeDevStats()">📊 View Stats</button>
-              <button class="home-dev-btn" onclick="homeDevReset()">🔄 Reset Progress</button>
-              <button class="home-dev-btn" onclick="homeDevBan()">🚫 Ban / Unban</button>
-            </div>
-          </div>
-
-          <!-- Supabase group -->
-          <div class="home-dev-group">
-            <div class="home-dev-group-label">☁️ Supabase & Data</div>
-            <div class="home-dev-btns">
-              <button class="home-dev-btn" onclick="devSbViewAllScores()">📋 View All Scores</button>
-              <button class="home-dev-btn" onclick="homeDevForcePull()">⬇️ Force Pull User</button>
-              <button class="home-dev-btn" onclick="devPushUpdate()">📢 Push Update</button>
-              <button class="home-dev-btn" onclick="devSbPingHealth()">🏓 Ping DB</button>
-              <button class="home-dev-btn" onclick="devSbExportAll()">📤 Export All</button>
-              <button class="home-dev-btn" onclick="devSbClearSyncCache()">🔁 Reset Sync</button>
-            </div>
-          </div>
-
-          <!-- Danger group -->
-          <div class="home-dev-group" style="margin-bottom:0">
-            <div class="home-dev-group-label" style="color:rgba(232,69,69,0.7)">⚠️ Danger Zone</div>
-            <div class="home-dev-btns">
-              <button class="home-dev-btn danger" onclick="devSbDeleteUserScores()">🗑️ Delete User DB Scores</button>
-              <button class="home-dev-btn danger" onclick="devFullHardReset()">💥 Hard Reset Everything</button>
-              <button class="home-dev-btn danger" onclick="devSbNukeAllScores()">☠️ Wipe ALL DB Scores</button>
-            </div>
-          </div>
-
-          <div id="home-dev-sb-status" style="font-size:0.62rem;color:#00e5ff;min-height:16px;margin-top:10px;opacity:0.8"></div>
-        </div>
       </div>
     </div>
   </div>
@@ -671,8 +564,7 @@
     <h2 style="font-family:'DM Serif Display',serif;font-size:2rem;margin-bottom:8px;color:var(--gold)">Already Played Today</h2>
     <p style="font-size:0.82rem;color:var(--muted);margin-bottom:6px">You've completed today's game.</p>
     <p style="font-size:0.78rem;color:var(--muted);margin-bottom:24px">Your score: <span id="played-today-score" style="color:var(--gold);font-size:1.1rem">—</span></p>
-    <div style="font-size:0.72rem;color:var(--muted);margin-bottom:20px">Come back tomorrow for a new game!</div>
-    <button onclick="document.getElementById('played-today-overlay').style.display='none';showHome()" style="padding:10px 28px;background:linear-gradient(135deg,#f5c842,#e8a020);border:none;border-radius:10px;color:#1a1200;font-family:'DM Mono',monospace;font-size:0.85rem;font-weight:500;cursor:pointer;transition:all 0.15s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">🏠 Back to Home</button>
+    <div style="font-size:0.72rem;color:var(--muted)">Come back tomorrow for a new game!</div>
   </div>
 </div>
 
@@ -772,7 +664,7 @@ function showHome() {
   document.getElementById('hs-today').textContent  = todayStr;
   document.getElementById('hs-medals').textContent = allMedals.length ? `${allMedals.length} / 5` : '0 / 5';
 
-  // Medal tiles — emoji only, highlight earned ones
+  // Medal tiles — highlight earned ones
   const medalMap = {
     'Bronze Solver': 'hm-bronze',
     'Silver Solver': 'hm-silver',
@@ -785,20 +677,18 @@ function showHome() {
     if (!el) return;
     const earned = allMedals.includes(name);
     el.classList.toggle('earned', earned);
+    // Count how many times earned
     const count = lb.filter(e=>(e.medals||[]).includes(name)).length;
     const existing = el.querySelector('.medal-count');
     if (existing) existing.remove();
     if (earned && count > 1) {
       const countEl = document.createElement('span');
       countEl.className = 'medal-count';
+      countEl.style.cssText = 'font-size:0.58rem;opacity:0.6;margin-left:auto;';
       countEl.textContent = `×${count}`;
       el.appendChild(countEl);
     }
   });
-
-  // Show dev card only for dev role
-  const devCard = document.getElementById('home-dev-card');
-  if (devCard) devCard.style.display = currentUser?.role === 'dev' ? 'block' : 'none';
 
   // Leaderboard
   const lbBody = document.getElementById('home-lb-body');
@@ -968,35 +858,9 @@ function sbMarkSync(username) {
 }
 
 function sbStatus(msg, ok=true) {
-  const color = ok ? '#00e5ff' : '#e84545';
   const el = document.getElementById('dev-sb-status');
-  if (el) { el.textContent = msg; el.style.color = color; }
-  const el2 = document.getElementById('home-dev-sb-status');
-  if (el2) { el2.textContent = msg; el2.style.color = color; }
+  if (el) { el.textContent = msg; el.style.color = ok ? '#00e5ff' : '#e84545'; }
 }
-
-function homeDevToggle() {
-  const body = document.getElementById('home-dev-body');
-  const btn  = document.getElementById('home-dev-toggle');
-  const open = body.style.display !== 'none';
-  body.style.display = open ? 'none' : 'block';
-  btn.textContent = open ? '▸' : '▾';
-}
-
-// Home dev tool wrappers — sync username input from home panel to sidebar input
-function _homeDevSyncUser() {
-  const u = document.getElementById('home-dev-user')?.value.trim().toLowerCase();
-  const r = document.getElementById('home-dev-role')?.value;
-  const sideUser = document.getElementById('dev-target-user');
-  const sideRole = document.getElementById('dev-promote-role');
-  if (sideUser && u) sideUser.value = u;
-  if (sideRole && r) sideRole.value = r;
-}
-function homeDevSetRole()   { _homeDevSyncUser(); devPromoteUser(); }
-function homeDevStats()     { _homeDevSyncUser(); devViewStats(); }
-function homeDevReset()     { _homeDevSyncUser(); devResetProgress(); }
-function homeDevBan()       { _homeDevSyncUser(); devBanUser(); }
-function homeDevForcePull() { _homeDevSyncUser(); devSbPullUser(); }
 
 // ── GAME UPDATES SYSTEM ───────────────────────
 // Dev pushes a message row to Supabase; all players see it as a banner on login.
