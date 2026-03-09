@@ -402,6 +402,7 @@
               <button class="home-dev-btn" onclick="homeDevStats()">📊 View Stats</button>
               <button class="home-dev-btn" onclick="homeDevReset()">🔄 Reset Progress</button>
               <button class="home-dev-btn" onclick="homeDevBan()">🚫 Ban / Unban</button>
+              <button class="home-dev-btn" onclick="devListAllAccounts()">👥 View All Accounts</button>
             </div>
           </div>
 
@@ -546,6 +547,7 @@
           <button class="btn btn-dev" style="flex:1" onclick="devResetProgress()">🔄 Reset</button>
           <button class="btn btn-dev" style="flex:1" onclick="devBanUser()">🚫 Ban</button>
         </div>
+        <button class="btn btn-dev" onclick="devListAllAccounts()">👥 View All Accounts</button>
 
         <!-- Supabase — remote DB operations + data export -->
         <div class="dev-section-label">☁️ Supabase & Data</div>
@@ -783,8 +785,9 @@ function showGame() {
   if (!gameOver || !deck) newGame();
 }
 
-// ── ACCOUNTS ──────────────────────────────────
-// Built-in system accounts (hidden from UI, always present)
+// ── ACCOUNTS (Supabase) ───────────────────────
+// Passwords are stored as plain text in Supabase for simplicity.
+// System accounts (guest/dev) remain local and always take priority.
 const SYSTEM_ACCOUNTS = {
   guest: { password:'guest',      role:'guest'  },
   dev:   { password:'dev$$2025',  role:'dev'    },
@@ -792,15 +795,48 @@ const SYSTEM_ACCOUNTS = {
 const ROLE_COLORS = { guest:'#7a7a8c', player:'#3dd68c', dev:'#00e5ff' };
 let currentUser = null;
 
-// Load user-created accounts from localStorage
-function loadAccounts() {
-  try { return JSON.parse(localStorage.getItem('set_accounts') || '{}'); } catch { return {}; }
+async function sbGetAccount(username) {
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/accounts?username=eq.${encodeURIComponent(username)}&limit=1`,
+      { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } }
+    );
+    if (!res.ok) return null;
+    const rows = await res.json();
+    return rows[0] || null;
+  } catch { return null; }
 }
-function saveAccounts(accts) {
-  try { localStorage.setItem('set_accounts', JSON.stringify(accts)); } catch {}
+
+async function sbCreateAccount(username, password) {
+  const res = await fetch(`${SB_URL}/rest/v1/accounts`, {
+    method: 'POST',
+    headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
+    body: JSON.stringify({ username, password, role: 'player', banned: false }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const rows = await res.json();
+  return rows[0];
 }
-function getAllAccounts() {
-  return Object.assign({}, SYSTEM_ACCOUNTS, loadAccounts());
+
+async function sbUpdateAccount(username, fields) {
+  const res = await fetch(
+    `${SB_URL}/rest/v1/accounts?username=eq.${encodeURIComponent(username)}`,
+    {
+      method: 'PATCH',
+      headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
+      body: JSON.stringify(fields),
+    }
+  );
+  return res.ok;
+}
+
+async function sbListAccounts() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/accounts?order=username.asc`,
+      { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch { return []; }
 }
 
 // ── DAILY PLAY TRACKING ───────────────────────
@@ -1158,22 +1194,39 @@ function switchTab(tab) {
   document.getElementById('reg-success').textContent = '';
 }
 
-function doLogin() {
-  const user = document.getElementById('login-user').value.trim().toLowerCase();
-  const pass = document.getElementById('login-pass').value;
-  const acct = getAllAccounts()[user];
-  if (!acct || acct.password !== pass) {
-    document.getElementById('login-error').textContent = 'Invalid username or password.';
-    document.getElementById('login-pass').value = '';
+async function doLogin() {
+  const user  = document.getElementById('login-user').value.trim().toLowerCase();
+  const pass  = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  const btn   = document.querySelector('#pane-signin .login-btn');
+  errEl.textContent = '';
+  if (!user || !pass) { errEl.textContent = 'Please enter username and password.'; return; }
+
+  // System accounts — checked locally, no network needed
+  if (SYSTEM_ACCOUNTS[user]) {
+    const acct = SYSTEM_ACCOUNTS[user];
+    if (acct.password !== pass) { errEl.textContent = 'Invalid username or password.'; return; }
+    _finishLogin(user, acct.role);
     return;
   }
-  currentUser = { username: user, role: acct.role };
+
+  // Player accounts — fetch from Supabase
+  btn.textContent = 'Signing in…'; btn.disabled = true;
+  const acct = await sbGetAccount(user);
+  btn.textContent = 'Sign In →'; btn.disabled = false;
+
+  if (!acct) { errEl.textContent = 'Invalid username or password.'; document.getElementById('login-pass').value = ''; return; }
+  if (acct.password !== pass) { errEl.textContent = 'Invalid username or password.'; document.getElementById('login-pass').value = ''; return; }
+  if (acct.banned) { errEl.textContent = 'This account has been banned.'; return; }
+
+  _finishLogin(user, acct.role);
+}
+
+function _finishLogin(user, role) {
+  currentUser = { username: user, role };
   document.getElementById('login-screen').classList.add('hidden');
-  applyRole(acct.role, user);
+  applyRole(role, user);
 
-  const isPriv = acct.role === 'dev';
-
-  // Pull remote scores once per day (fire-and-forget, then refresh leaderboard)
   if (sbLastSync(user) !== todayKey()) {
     sbPullScores(user).then(() => {
       sbMarkSync(user);
@@ -1182,39 +1235,51 @@ function doLogin() {
     });
   }
 
-  // Show home screen — clicking Play checks the daily limit
   showHome();
-  // Fetch any active update banner (fire-and-forget)
   fetchLatestUpdate();
 }
 
-function doRegister() {
-  const user = document.getElementById('reg-user').value.trim().toLowerCase();
-  const pass = document.getElementById('reg-pass').value;
+async function doRegister() {
+  const user  = document.getElementById('reg-user').value.trim().toLowerCase();
+  const pass  = document.getElementById('reg-pass').value;
   const pass2 = document.getElementById('reg-pass2').value;
   const errEl = document.getElementById('reg-error');
   const okEl  = document.getElementById('reg-success');
+  const btn   = document.querySelector('#pane-register .login-btn-alt');
   errEl.textContent = ''; okEl.textContent = '';
 
-  if (!user || user.length < 2) { errEl.textContent = 'Username must be at least 2 characters.'; return; }
-  if (!/^[a-z0-9_]+$/.test(user)) { errEl.textContent = 'Username: letters, numbers, underscores only.'; return; }
-  if (!pass || pass.length < 4) { errEl.textContent = 'Password must be at least 4 characters.'; return; }
-  if (pass !== pass2) { errEl.textContent = 'Passwords do not match.'; return; }
-  if (getAllAccounts()[user]) { errEl.textContent = 'Username already taken.'; return; }
+  if (!user || user.length < 2)          { errEl.textContent = 'Username must be at least 2 characters.'; return; }
+  if (!/^[a-z0-9_]+$/.test(user))        { errEl.textContent = 'Username: letters, numbers, underscores only.'; return; }
+  if (!pass || pass.length < 4)          { errEl.textContent = 'Password must be at least 4 characters.'; return; }
+  if (pass !== pass2)                    { errEl.textContent = 'Passwords do not match.'; return; }
+  if (SYSTEM_ACCOUNTS[user])             { errEl.textContent = 'Username already taken.'; return; }
 
-  const userAccounts = loadAccounts();
-  userAccounts[user] = { password: pass, role: 'player' };
-  saveAccounts(userAccounts);
+  btn.textContent = 'Creating account…'; btn.disabled = true;
 
-  okEl.textContent = `Account "${user}" created! You can sign in now.`;
-  document.getElementById('reg-user').value = '';
-  document.getElementById('reg-pass').value = '';
-  document.getElementById('reg-pass2').value = '';
-  setTimeout(() => {
-    switchTab('signin');
-    document.getElementById('login-user').value = user;
-    document.getElementById('login-pass').focus();
-  }, 1200);
+  // Check if username already exists
+  const existing = await sbGetAccount(user);
+  if (existing) {
+    btn.textContent = 'Create Account →'; btn.disabled = false;
+    errEl.textContent = 'Username already taken.'; return;
+  }
+
+  try {
+    await sbCreateAccount(user, pass);
+    btn.textContent = 'Create Account →'; btn.disabled = false;
+    okEl.textContent = `Account "${user}" created! You can sign in now.`;
+    document.getElementById('reg-user').value = '';
+    document.getElementById('reg-pass').value = '';
+    document.getElementById('reg-pass2').value = '';
+    setTimeout(() => {
+      switchTab('signin');
+      document.getElementById('login-user').value = user;
+      document.getElementById('login-pass').focus();
+    }, 1200);
+  } catch(e) {
+    btn.textContent = 'Create Account →'; btn.disabled = false;
+    errEl.textContent = 'Could not create account. Please try again.';
+    console.error('[Register]', e);
+  }
 }
 
 function doLogout() {
@@ -1805,15 +1870,15 @@ function devLockPuzzle() {
 }
 
 // 2. PLAYER MANAGEMENT ─────────────────────────
-function devPromoteUser() {
+async function devPromoteUser() {
   const user = document.getElementById('dev-target-user').value.trim().toLowerCase();
   const role = document.getElementById('dev-promote-role').value;
   if (!user) { setMessage('Enter a username first.','bad'); return; }
-  const accts = loadAccounts();
-  if (!accts[user] && !SYSTEM_ACCOUNTS[user]) { setMessage(`User "${user}" not found.`,'bad'); return; }
-  if (accts[user]) { accts[user].role = role; saveAccounts(accts); }
-  setMessage(`⬆️ ${user} → ${role}`, 'info');
-  logEntry(`Dev: ${user} promoted to ${role}`, 'info');
+  if (SYSTEM_ACCOUNTS[user]) { setMessage(`Cannot change role of system account "${user}".`,'bad'); return; }
+  sbStatus(`Setting ${user} → ${role}…`);
+  const ok = await sbUpdateAccount(user, { role });
+  if (ok) { sbStatus(`✅ ${user} → ${role}`); setMessage(`⬆️ ${user} → ${role}`, 'info'); logEntry(`Dev: ${user} → ${role}`, 'info'); }
+  else    { sbStatus(`❌ Update failed`, false); setMessage(`Could not update role.`, 'bad'); }
 }
 
 async function devViewStats() {
@@ -1852,18 +1917,44 @@ async function devResetProgress() {
   logEntry(`Dev: reset progress for ${user}`, 'bad');
 }
 
-function devBanUser() {
+async function devBanUser() {
   const user = document.getElementById('dev-target-user').value.trim().toLowerCase();
   if (!user) { setMessage('Enter a username.','bad'); return; }
-  const accts = loadAccounts();
-  if (!accts[user]) { setMessage(`User "${user}" not found in user accounts.`,'bad'); return; }
-  accts[user].banned = !accts[user].banned;
-  saveAccounts(accts);
-  setMessage(accts[user].banned ? `🚫 ${user} banned` : `✅ ${user} unbanned`, 'info');
-  logEntry(`Dev: ${accts[user].banned?'banned':'unbanned'} ${user}`, 'bad');
+  if (SYSTEM_ACCOUNTS[user]) { setMessage(`Cannot ban system account "${user}".`,'bad'); return; }
+  sbStatus(`Fetching ${user}…`);
+  const acct = await sbGetAccount(user);
+  if (!acct) { sbStatus(`❌ User not found`, false); setMessage(`User "${user}" not found.`,'bad'); return; }
+  const newBanned = !acct.banned;
+  const ok = await sbUpdateAccount(user, { banned: newBanned });
+  if (ok) {
+    sbStatus(`✅ ${user} ${newBanned ? 'banned' : 'unbanned'}`);
+    setMessage(newBanned ? `🚫 ${user} banned` : `✅ ${user} unbanned`, 'info');
+    logEntry(`Dev: ${newBanned?'banned':'unbanned'} ${user}`, 'bad');
+  } else {
+    sbStatus(`❌ Update failed`, false);
+  }
 }
 
-// 3. SYSTEM & DEBUG ─────────────────────────────
+async function devListAllAccounts() {
+  sbStatus('Fetching accounts…');
+  const rows = await sbListAccounts();
+  sbStatus(`✅ ${rows.length} accounts`);
+  const ROLE_ICON = { player:'🟢', dev:'🔵', guest:'⚪' };
+  const tableHtml = `
+    <div style="max-height:300px;overflow-y:auto">
+      <table class="modal-scores-table">
+        <thead><tr><th>Username</th><th>Role</th><th>Banned</th></tr></thead>
+        <tbody>${rows.map(r => `
+          <tr>
+            <td style="color:var(--text);font-weight:500">${r.username}</td>
+            <td>${ROLE_ICON[r.role]||'⚪'} ${r.role}</td>
+            <td style="color:${r.banned?'var(--red)':'var(--muted)'}">${r.banned?'🚫 yes':'—'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  await uiAlert(`All Accounts — ${rows.length} players`, tableHtml, true);
+}
 function devShowAllSets() {
   const all = findAllSets(tableCards);
   if (!all.length) { console.log('No sets on table.'); setMessage('No Sets on table!','warn'); return; }
