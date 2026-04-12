@@ -335,6 +335,50 @@
   ::-webkit-scrollbar { width:4px; }
   ::-webkit-scrollbar-track { background:transparent; }
   ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+  /* ── GEMS ── */
+  .gem-badge { display:inline-flex;align-items:center;gap:5px;background:rgba(99,202,255,0.12);border:1px solid rgba(99,202,255,0.3);border-radius:8px;padding:4px 10px;font-size:0.75rem;color:#63caff;font-weight:500; }
+  .gem-badge .gem-icon { font-size:1rem; }
+
+  /* ── ACHIEVEMENTS ── */
+  .ach-grid { display:flex;flex-direction:column;gap:6px; }
+  .ach-row { display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--border);opacity:0.35;transition:opacity 0.2s; }
+  .ach-row.earned { opacity:1; }
+  .ach-icon { font-size:1.4rem;flex-shrink:0; }
+  .ach-info { flex:1 }
+  .ach-name { font-size:0.75rem;font-weight:500;color:var(--text);display:block; }
+  .ach-desc { font-size:0.62rem;color:var(--muted);display:block;margin-top:1px; }
+  .ach-gems { font-size:0.7rem;color:#63caff;flex-shrink:0; }
+  .ach-new  { animation:achPop 0.5s cubic-bezier(0.175,0.885,0.32,1.275); }
+  @keyframes achPop { 0%{transform:scale(0.7);opacity:0} 100%{transform:scale(1);opacity:1} }
+
+  /* ── AVATAR ── */
+  .avatar-wrap { display:flex;flex-direction:column;align-items:center;gap:8px; }
+  .avatar-svg-wrap { position:relative;cursor:pointer;transition:transform 0.15s; }
+  .avatar-svg-wrap:hover { transform:translateY(-2px); }
+  .avatar-edit-hint { font-size:0.58rem;color:var(--muted);text-align:center;letter-spacing:0.05em; }
+
+  /* ── SHOP ── */
+  .shop-tabs { display:flex;gap:0;border-radius:8px;overflow:hidden;border:1px solid var(--border);margin-bottom:14px; }
+  .shop-tab { flex:1;padding:8px 4px;background:none;border:none;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.65rem;cursor:pointer;transition:all 0.15s; }
+  .shop-tab.active { background:var(--surface2);color:var(--text); }
+  .shop-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px; }
+  .shop-item { background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:all 0.15s;position:relative; }
+  .shop-item:hover:not(.owned) { border-color:rgba(99,202,255,0.4);transform:translateY(-2px); }
+  .shop-item.owned { border-color:rgba(61,214,140,0.35);background:rgba(61,214,140,0.06); }
+  .shop-item.equipped { border-color:var(--gold);background:rgba(245,200,66,0.08); }
+  .shop-item-preview { font-size:2rem;line-height:1; }
+  .shop-item-name { font-size:0.6rem;color:var(--text);text-align:center;font-weight:500; }
+  .shop-item-price { font-size:0.62rem;color:#63caff; }
+  .shop-item-owned-badge { position:absolute;top:4px;right:4px;font-size:0.55rem;background:rgba(61,214,140,0.2);color:var(--green);border-radius:4px;padding:1px 4px; }
+  .shop-item-eq-badge { position:absolute;top:4px;right:4px;font-size:0.55rem;background:rgba(245,200,66,0.2);color:var(--gold);border-radius:4px;padding:1px 4px; }
+
+  /* ── AVATAR CUSTOMISER MODAL ── */
+  .av-section { margin-bottom:16px; }
+  .av-section-label { font-size:0.58rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:8px; }
+  .av-colour-row { display:flex;gap:7px;flex-wrap:wrap; }
+  .av-colour-swatch { width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all 0.15s; }
+  .av-colour-swatch.selected { border-color:var(--gold);transform:scale(1.15); }
 </style>
 </head>
 <body>
@@ -421,6 +465,7 @@
           <div class="home-stat-row"><span class="home-stat-label">Best time</span><span class="home-stat-val" id="hs-time">—</span></div>
           <div class="home-stat-row"><span class="home-stat-label">Today</span><span class="home-stat-val" id="hs-today">—</span></div>
           <div class="home-stat-row"><span class="home-stat-label">Medals earned</span><span class="home-stat-val" id="hs-medals">—</span></div>
+          <div class="home-stat-row"><span class="home-stat-label">Gems</span><span class="home-stat-val" id="hs-gems-stat" style="color:#63caff">💎 0</span></div>
         </div>
       </div>
 
@@ -434,6 +479,44 @@
           <div class="home-medal-tile" id="hm-master"><span class="medal-icon">🏆</span><div><span class="medal-name">Master Solver</span><span class="medal-desc">Finish under 1 min</span></div></div>
           <div class="home-medal-tile" id="hm-legend" style="min-width:100%"><span class="medal-icon">⭐</span><div><span class="medal-name">Legend Solver</span><span class="medal-desc">Perfect accuracy — no wrong guesses</span></div></div>
         </div>
+      </div>
+
+      <!-- Avatar + Gems card -->
+      <div class="home-card" id="home-avatar-card">
+        <div class="home-card-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>🧑 Your Avatar</span>
+          <span class="gem-badge"><span class="gem-icon">💎</span><span id="hs-gems">0</span></span>
+        </div>
+        <div class="avatar-wrap">
+          <div class="avatar-svg-wrap" onclick="openAvatarCustomiser()" title="Customise avatar">
+            <div id="home-avatar-display"></div>
+          </div>
+          <div class="avatar-edit-hint">tap to customise</div>
+        </div>
+      </div>
+
+      <!-- Achievements card -->
+      <div class="home-card" id="home-ach-card">
+        <div class="home-card-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>🏆 Achievements</span>
+          <span id="ach-progress" style="font-size:0.68rem;color:var(--muted)">0 / 0</span>
+        </div>
+        <div class="ach-grid" id="home-ach-body"></div>
+      </div>
+
+      <!-- Shop card -->
+      <div class="home-card home-full-width" id="home-shop-card">
+        <div class="home-card-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>🛍️ Avatar Shop</span>
+          <span class="gem-badge"><span class="gem-icon">💎</span><span id="shop-gems-display">0</span></span>
+        </div>
+        <div class="shop-tabs">
+          <button class="shop-tab active" id="shopTab-hats"   onclick="shopTab('hats')">🎩 Hats</button>
+          <button class="shop-tab"        id="shopTab-shirts" onclick="shopTab('shirts')">👕 Shirts</button>
+          <button class="shop-tab"        id="shopTab-bg"     onclick="shopTab('bg')">🖼️ Frames</button>
+          <button class="shop-tab"        id="shopTab-acc"    onclick="shopTab('acc')">✨ Accessories</button>
+        </div>
+        <div class="shop-grid" id="shop-grid-body"></div>
       </div>
 
       <!-- Leaderboard card -->
@@ -932,6 +1015,14 @@ function showHome() {
     }).join('');
   }
 
+  // Refresh gem / achievement / avatar / shop panels
+  if (currentUser?.username) {
+    refreshAvatarDisplay(currentUser.username);
+    refreshGemDisplays(currentUser.username);
+    renderAchievements(currentUser.username);
+    refreshShop(currentUser.username);
+  }
+
   document.getElementById('home-screen').classList.add('show');
 }
 
@@ -1425,7 +1516,13 @@ function _finishLogin(user, role) {
       });
     }
 
-    showHome();
+    sbPullPlayerProfile(user).then(() => {
+      refreshAvatarDisplay(user);
+      refreshGemDisplays(user);
+      renderAchievements(user);
+      refreshShop(user);
+      showHome();
+    });
     fetchLatestUpdate();
   });
 }
@@ -1751,6 +1848,9 @@ function endGame() {
     renderLeaderboard(username);
     sbPushScore(username, score, timerSeconds, todayKey(), medals.map(m=>m.name));
     sbPushStudentNotifications(username, score, timerSeconds, medals.map(m=>m.name));
+    // Award gems and check achievements
+    awardGameGems(username, score, timerSeconds, wrongGuesses);
+    checkAchievements(username, score, timerSeconds, wrongGuesses);
   }
   collectCompletedGame = false;
 
@@ -3002,6 +3102,599 @@ async function devCancelRemoteWipe() {
   );
   sbStatus('✅ Remote wipe cancelled');
   logEntry('Dev: remote wipe cancelled', 'info');
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GEM SYSTEM
+// ═══════════════════════════════════════════════════════════════════════════
+
+function getGems(username) {
+  return parseInt(localStorage.getItem(`set_gems_${username}`) || '0', 10);
+}
+function setGems(username, n) {
+  localStorage.setItem(`set_gems_${username}`, Math.max(0, n));
+  refreshGemDisplays(username);
+}
+function addGems(username, n, reason) {
+  const prev = getGems(username);
+  setGems(username, prev + n);
+  if (reason) showGemToast(n, reason);
+  // Sync to Supabase fire-and-forget
+  sbSyncGems(username, prev + n);
+}
+function spendGems(username, n) {
+  const cur = getGems(username);
+  if (cur < n) return false;
+  setGems(username, cur - n);
+  sbSyncGems(username, cur - n);
+  return true;
+}
+function refreshGemDisplays(username) {
+  const n = getGems(username);
+  document.querySelectorAll('#hs-gems, #shop-gems-display').forEach(el => { if(el) el.textContent = n; });
+  const statEl = document.getElementById('hs-gems-stat');
+  if (statEl) statEl.textContent = `💎 ${n}`;
+}
+async function sbSyncGems(username, balance) {
+  try {
+    await fetch(`${SB_URL}/rest/v1/gems?username=eq.${encodeURIComponent(username)}`, {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ username, balance })
+    });
+  } catch {}
+}
+async function sbPullGems(username) {
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/gems?username=eq.${encodeURIComponent(username)}&limit=1`,
+      { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } }
+    );
+    const rows = await res.json();
+    if (rows?.length) setGems(username, rows[0].balance);
+  } catch {}
+}
+function showGemToast(n, reason) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a2540;border:1px solid rgba(99,202,255,0.4);border-radius:10px;padding:8px 18px;font-size:0.78rem;color:#63caff;z-index:500;display:flex;align-items:center;gap:8px;animation:slideUp 0.4s forwards;pointer-events:none';
+  t.innerHTML = `<span style="font-size:1.1rem">💎</span> +${n} gems — ${reason}`;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.animation='slideDown 0.3s forwards'; setTimeout(()=>t.remove(),320); }, 2200);
+}
+
+// Per-game gem rewards
+function awardGameGems(username, score, timeSecs, wrong) {
+  let earned = 0, reasons = [];
+  // Completion
+  earned += 5; reasons.push('completed puzzle');
+  // Speed bonuses
+  if (timeSecs < 60)  { earned += 20; reasons.push('under 1 min'); }
+  else if (timeSecs < 120) { earned += 12; reasons.push('under 2 min'); }
+  else if (timeSecs < 300) { earned +=  6; reasons.push('under 5 min'); }
+  // Accuracy bonus
+  if (wrong === 0) { earned += 10; reasons.push('perfect accuracy'); }
+  // Score bonus
+  if (score >= 18) { earned += 8; reasons.push('max score'); }
+  else if (score >= 15) { earned += 4; reasons.push('high score'); }
+  // Streak bonus
+  const streak = getStreak(username);
+  if (streak >= 7)  { earned += 7; reasons.push(`${streak}-day streak`); }
+  else if (streak >= 3) { earned += 3; reasons.push(`${streak}-day streak`); }
+
+  if (earned > 0) addGems(username, earned, reasons[0]);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STREAK TRACKER
+// ═══════════════════════════════════════════════════════════════════════════
+function getStreak(username) {
+  const data = JSON.parse(localStorage.getItem(`set_streak_${username}`) || '{"streak":0,"last":""}');
+  return data.streak;
+}
+function updateStreak(username) {
+  const key = `set_streak_${username}`;
+  const data = JSON.parse(localStorage.getItem(key) || '{"streak":0,"last":""}');
+  const today = todayKey();
+  const yesterday = new Date(Date.now()-864e5).toISOString().slice(0,10);
+  if (data.last === today) return data.streak;
+  const newStreak = data.last === yesterday ? data.streak + 1 : 1;
+  localStorage.setItem(key, JSON.stringify({ streak: newStreak, last: today }));
+  return newStreak;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ACHIEVEMENTS
+// ═══════════════════════════════════════════════════════════════════════════
+const ACHIEVEMENTS = [
+  // Completion milestones
+  { id:'first_game',    icon:'🎮', name:'First Puzzle',      desc:'Complete your first daily puzzle',              gems:10, check: (lb)=>lb.length>=1 },
+  { id:'games_5',       icon:'🃏', name:'Getting Started',   desc:'Complete 5 puzzles',                            gems:15, check: (lb)=>lb.length>=5 },
+  { id:'games_10',      icon:'📅', name:'Ten Days',          desc:'Complete 10 puzzles',                           gems:25, check: (lb)=>lb.length>=10 },
+  { id:'games_25',      icon:'📆', name:'Monthly Regular',   desc:'Complete 25 puzzles',                           gems:40, check: (lb)=>lb.length>=25 },
+  { id:'games_50',      icon:'🏅', name:'Dedicated Player',  desc:'Complete 50 puzzles',                           gems:75, check: (lb)=>lb.length>=50 },
+  { id:'games_100',     icon:'💯', name:'Century Club',      desc:'Complete 100 puzzles',                          gems:150,check: (lb)=>lb.length>=100 },
+  // Speed
+  { id:'speed_5',       icon:'⚡', name:'Quick Solver',      desc:'Finish a puzzle in under 5 minutes',            gems:10, check: (lb)=>lb.some(e=>e.time<300) },
+  { id:'speed_2',       icon:'🏃', name:'Speed Runner',      desc:'Finish a puzzle in under 2 minutes',            gems:20, check: (lb)=>lb.some(e=>e.time<120) },
+  { id:'speed_1',       icon:'🚀', name:'Lightning Fast',    desc:'Finish a puzzle in under 1 minute',             gems:50, check: (lb)=>lb.some(e=>e.time<60) },
+  // Accuracy
+  { id:'perfect_1',     icon:'⭐', name:'Perfectionist',     desc:'Complete a puzzle with no wrong guesses',       gems:15, check: (lb)=>lb.some(e=>(e.medals||[]).includes('Legend Solver')) },
+  { id:'perfect_5',     icon:'🌟', name:'Sharpshooter',      desc:'5 perfect puzzles (no wrong guesses)',          gems:40, check: (lb)=>lb.filter(e=>(e.medals||[]).includes('Legend Solver')).length>=5 },
+  { id:'perfect_10',    icon:'💫', name:'Untouchable',       desc:'10 perfect puzzles',                            gems:80, check: (lb)=>lb.filter(e=>(e.medals||[]).includes('Legend Solver')).length>=10 },
+  // Score
+  { id:'score_15',      icon:'📈', name:'High Scorer',       desc:'Score 15 or more in a single puzzle',           gems:15, check: (lb)=>lb.some(e=>e.score>=15) },
+  { id:'score_18',      icon:'💥', name:'Maximum Power',     desc:'Score 18 — maximum possible',                   gems:30, check: (lb)=>lb.some(e=>e.score>=18) },
+  // Streaks
+  { id:'streak_3',      icon:'🔥', name:'On a Roll',         desc:'Play 3 days in a row',                          gems:20, check: (_,streak)=>streak>=3 },
+  { id:'streak_7',      icon:'🔥', name:'Week Warrior',      desc:'Play 7 days in a row',                          gems:50, check: (_,streak)=>streak>=7 },
+  { id:'streak_30',     icon:'🔥', name:'Unstoppable',       desc:'Play 30 days in a row',                         gems:200,check: (_,streak)=>streak>=30 },
+  // Medal collection
+  { id:'all_medals',    icon:'🎖️', name:'Medal Collector',   desc:'Earn all 5 medals in a single game',            gems:60, check: (lb)=>lb.some(e=>(e.medals||[]).length>=5) },
+  { id:'master_medal',  icon:'🏆', name:'Master Solver',     desc:'Earn the Master Solver medal',                  gems:40, check: (lb)=>lb.some(e=>(e.medals||[]).includes('Master Solver')) },
+  // Social
+  { id:'join_class',    icon:'🏫', name:'Class Member',      desc:'Join a teacher\'s class',                       gems:15, check: (_,__,social)=>social?.inClass },
+  // Gem milestone
+  { id:'gems_100',      icon:'💎', name:'Gem Collector',     desc:'Earn 100 gems total',                           gems:20, check: (_,__,___,gems)=>gems>=100 },
+  { id:'gems_500',      icon:'💎', name:'Gem Hoarder',       desc:'Earn 500 gems total',                           gems:50, check: (_,__,___,gems)=>gems>=500 },
+];
+
+function getEarnedAchievements(username) {
+  try { return JSON.parse(localStorage.getItem(`set_ach_${username}`) || '[]'); } catch { return []; }
+}
+function saveEarnedAchievements(username, ids) {
+  localStorage.setItem(`set_ach_${username}`, JSON.stringify(ids));
+}
+
+async function checkAchievements(username, score, timeSecs, wrong) {
+  const lb      = getLeaderboard(username);
+  const streak  = updateStreak(username);
+  const gems    = getGems(username);
+  const cls     = await sbGetMyClass(username).catch(()=>null);
+  const social  = { inClass: !!cls };
+  const earned  = getEarnedAchievements(username);
+  const newlyEarned = [];
+
+  for (const ach of ACHIEVEMENTS) {
+    if (earned.includes(ach.id)) continue;
+    let unlocked = false;
+    try { unlocked = ach.check(lb, streak, social, gems); } catch {}
+    if (unlocked) {
+      earned.push(ach.id);
+      newlyEarned.push(ach);
+    }
+  }
+
+  if (newlyEarned.length) {
+    saveEarnedAchievements(username, earned);
+    let totalGems = 0;
+    newlyEarned.forEach(a => { totalGems += a.gems; });
+    // Award gems without recursion
+    const prev = getGems(username);
+    setGems(username, prev + totalGems);
+    sbSyncGems(username, prev + totalGems);
+    // Show toast for first new achievement
+    if (newlyEarned[0]) showAchievementToast(newlyEarned[0]);
+    // Sync achievements to Supabase
+    sbSyncAchievements(username, earned);
+  }
+}
+
+function showAchievementToast(ach) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:130px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a2020;border:1px solid rgba(245,200,66,0.4);border-radius:12px;padding:10px 20px;font-size:0.78rem;color:var(--text);z-index:500;display:flex;align-items:center;gap:10px;animation:slideUp 0.4s forwards;pointer-events:none;max-width:320px;text-align:left';
+  t.innerHTML = `<span style="font-size:1.6rem">${ach.icon}</span><div><strong style="color:var(--gold)">Achievement Unlocked!</strong><br><span style="color:var(--muted);font-size:0.7rem">${ach.name} — +${ach.gems} 💎</span></div>`;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.animation='slideDown 0.3s forwards'; setTimeout(()=>t.remove(),320); }, 3500);
+}
+
+async function sbSyncAchievements(username, ids) {
+  try {
+    for (const id of ids) {
+      await fetch(`${SB_URL}/rest/v1/achievements`, {
+        method: 'POST',
+        headers: { ...SB_HEADERS, 'Prefer': 'resolution=ignore-duplicates,return=minimal' },
+        body: JSON.stringify({ username, achievement_id: id })
+      });
+    }
+  } catch {}
+}
+
+function renderAchievements(username) {
+  const earned = getEarnedAchievements(username);
+  const body   = document.getElementById('home-ach-body');
+  const prog   = document.getElementById('ach-progress');
+  if (!body) return;
+  prog.textContent = `${earned.length} / ${ACHIEVEMENTS.length}`;
+  body.innerHTML = ACHIEVEMENTS.map(a => {
+    const isEarned = earned.includes(a.id);
+    return `<div class="ach-row${isEarned?' earned':''}">
+      <span class="ach-icon">${a.icon}</span>
+      <div class="ach-info">
+        <span class="ach-name">${a.name}</span>
+        <span class="ach-desc">${a.desc}</span>
+      </div>
+      <span class="ach-gems">${isEarned?'✓':'+'+a.gems} 💎</span>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AVATAR SYSTEM — pixel-art style SVG rendered from avatar data
+// ═══════════════════════════════════════════════════════════════════════════
+const AVATAR_DEFAULTS = { skin:'#F5C5A3', hair:'#4A2E1A', eyes:'#3B5998', mouth:'smile', hatId:'', shirtId:'', bgId:'', accId:'' };
+
+const SKIN_TONES   = ['#FADDBB','#F5C5A3','#D4956A','#A0632A','#6B3A1F','#3D1A08'];
+const HAIR_COLOURS = ['#F5E6C8','#E8A857','#B87333','#8B4513','#4A2E1A','#1A1A1A','#CC0000','#6A0DAD','#2196F3'];
+const EYE_COLOURS  = ['#3B5998','#2E7D32','#B71C1C','#795548','#00838F','#F57F17'];
+const MOUTHS       = ['smile','grin','straight','smirk'];
+
+function getAvatarData(username) {
+  try { return { ...AVATAR_DEFAULTS, ...JSON.parse(localStorage.getItem(`set_av_${username}`) || '{}') }; }
+  catch { return { ...AVATAR_DEFAULTS }; }
+}
+function saveAvatarData(username, data) {
+  localStorage.setItem(`set_av_${username}`, JSON.stringify(data));
+}
+
+function renderAvatarSVG(av, size=64) {
+  const s = size;
+  const cx = s/2, headY = s*0.3, headR = s*0.22;
+
+  // Background frame
+  const bg = av.bgId ? SHOP_ITEMS.find(i=>i.id===av.bgId) : null;
+  const bgFill = bg ? bg.fill : 'transparent';
+  const bgCircle = bg ? `<circle cx="${cx}" cy="${cx}" r="${s*0.48}" fill="${bgFill}" opacity="0.6"/>` : '';
+
+  // Body / shirt
+  const shirt = av.shirtId ? SHOP_ITEMS.find(i=>i.id===av.shirtId) : null;
+  const shirtCol = shirt ? shirt.fill : '#607D8B';
+  const bodyY = headY + headR * 0.85;
+  const bodyH = s * 0.28;
+
+  // Hat
+  const hat = av.hatId ? SHOP_ITEMS.find(i=>i.id===av.hatId) : null;
+  const hatSVG = hat ? hat.svg(s, cx, headY, headR) : '';
+
+  // Accessory
+  const acc = av.accId ? SHOP_ITEMS.find(i=>i.id===av.accId) : null;
+  const accSVG = acc ? acc.svg(s, cx, headY, headR) : '';
+
+  // Mouth path
+  const mouthY = headY + headR * 0.35;
+  const mouthW = headR * 0.45;
+  const mouths = {
+    smile:    `<path d="M${cx-mouthW},${mouthY} Q${cx},${mouthY+headR*0.28} ${cx+mouthW},${mouthY}" fill="none" stroke="#8B2020" stroke-width="${s*0.025}" stroke-linecap="round"/>`,
+    grin:     `<path d="M${cx-mouthW},${mouthY} Q${cx},${mouthY+headR*0.38} ${cx+mouthW},${mouthY}" fill="#8B2020" stroke="#8B2020" stroke-width="1"/>`,
+    straight: `<line x1="${cx-mouthW}" y1="${mouthY+headR*0.1}" x2="${cx+mouthW}" y2="${mouthY+headR*0.1}" stroke="#8B2020" stroke-width="${s*0.025}" stroke-linecap="round"/>`,
+    smirk:    `<path d="M${cx-mouthW*0.5},${mouthY+headR*0.05} Q${cx+mouthW*0.3},${mouthY+headR*0.28} ${cx+mouthW},${mouthY}" fill="none" stroke="#8B2020" stroke-width="${s*0.025}" stroke-linecap="round"/>`,
+  };
+
+  return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg">
+    ${bgCircle}
+    <!-- Hair back -->
+    <ellipse cx="${cx}" cy="${headY-headR*0.05}" rx="${headR*1.05}" ry="${headR*1.1}" fill="${av.hair}"/>
+    <!-- Body -->
+    <path d="M${cx-headR*0.85},${bodyY+bodyH} Q${cx-headR},${bodyY} ${cx},${bodyY} Q${cx+headR},${bodyY} ${cx+headR*0.85},${bodyY+bodyH} Z" fill="${shirtCol}"/>
+    <!-- Neck -->
+    <rect x="${cx-headR*0.22}" y="${bodyY-headR*0.1}" width="${headR*0.44}" height="${headR*0.28}" fill="${av.skin}"/>
+    <!-- Head -->
+    <ellipse cx="${cx}" cy="${headY}" rx="${headR}" ry="${headR*1.05}" fill="${av.skin}"/>
+    <!-- Hair front -->
+    <ellipse cx="${cx}" cy="${headY-headR*0.72}" rx="${headR*0.95}" ry="${headR*0.45}" fill="${av.hair}"/>
+    <!-- Eyes -->
+    <ellipse cx="${cx-headR*0.32}" cy="${headY-headR*0.08}" rx="${headR*0.16}" ry="${headR*0.19}" fill="white"/>
+    <ellipse cx="${cx+headR*0.32}" cy="${headY-headR*0.08}" rx="${headR*0.16}" ry="${headR*0.19}" fill="white"/>
+    <ellipse cx="${cx-headR*0.32}" cy="${headY-headR*0.06}" rx="${headR*0.09}" ry="${headR*0.11}" fill="${av.eyes}"/>
+    <ellipse cx="${cx+headR*0.32}" cy="${headY-headR*0.06}" rx="${headR*0.09}" ry="${headR*0.11}" fill="${av.eyes}"/>
+    <ellipse cx="${cx-headR*0.29}" cy="${headY-headR*0.1}" rx="${headR*0.04}" ry="${headR*0.04}" fill="white"/>
+    <ellipse cx="${cx+headR*0.35}" cy="${headY-headR*0.1}" rx="${headR*0.04}" ry="${headR*0.04}" fill="white"/>
+    <!-- Nose -->
+    <ellipse cx="${cx}" cy="${headY+headR*0.12}" rx="${headR*0.07}" ry="${headR*0.05}" fill="${av.skin}" stroke="${av.skin==='#FADDBB'?'#e0a88a':av.skin}" stroke-width="1.5"/>
+    <!-- Mouth -->
+    ${mouths[av.mouth]||mouths.smile}
+    <!-- Hat -->
+    ${hatSVG}
+    <!-- Accessory -->
+    ${accSVG}
+  </svg>`;
+}
+
+// Render avatar for a given username (uses their stored data)
+function renderAvatarSVGForUser(username, size=40) {
+  const av = getAvatarData(username);
+  return renderAvatarSVG(av, size);
+}
+
+function refreshAvatarDisplay(username) {
+  const av  = getAvatarData(username);
+  const el  = document.getElementById('home-avatar-display');
+  if (el) el.innerHTML = renderAvatarSVG(av, 100);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SHOP ITEMS
+// ═══════════════════════════════════════════════════════════════════════════
+function hatSVGFactory(fill, brimFill, style) {
+  return (s, cx, headY, headR) => {
+    if (style==='top') {
+      return `<rect x="${cx-headR*0.6}" y="${headY-headR*1.72}" width="${headR*1.2}" height="${headR*0.8}" rx="${headR*0.08}" fill="${fill}"/>
+              <rect x="${cx-headR*0.85}" y="${headY-headR*0.94}" width="${headR*1.7}" height="${headR*0.2}" rx="${headR*0.04}" fill="${brimFill}"/>`;
+    }
+    if (style==='beanie') {
+      return `<ellipse cx="${cx}" cy="${headY-headR*0.82}" rx="${headR*0.95}" ry="${headR*0.55}" fill="${fill}"/>
+              <ellipse cx="${cx}" cy="${headY-headR*0.28}" rx="${headR*0.98}" ry="${headR*0.22}" fill="${brimFill}"/>`;
+    }
+    if (style==='cowboy') {
+      return `<ellipse cx="${cx}" cy="${headY-headR*0.9}" rx="${headR*0.75}" ry="${headR*0.55}" fill="${fill}"/>
+              <ellipse cx="${cx}" cy="${headY-headR*0.35}" rx="${headR*1.3}" ry="${headR*0.2}" fill="${brimFill}"/>`;
+    }
+    if (style==='crown') {
+      const pts = `${cx-headR*0.7},${headY-headR*0.9} ${cx-headR*0.55},${headY-headR*1.5} ${cx-headR*0.2},${headY-headR*1.1} ${cx},${headY-headR*1.6} ${cx+headR*0.2},${headY-headR*1.1} ${cx+headR*0.55},${headY-headR*1.5} ${cx+headR*0.7},${headY-headR*0.9}`;
+      return `<polygon points="${pts}" fill="${fill}"/>
+              <circle cx="${cx-headR*0.35}" cy="${headY-headR*1.42}" r="${headR*0.1}" fill="${brimFill}"/>
+              <circle cx="${cx}" cy="${headY-headR*1.52}" r="${headR*0.1}" fill="${brimFill}"/>
+              <circle cx="${cx+headR*0.35}" cy="${headY-headR*1.42}" r="${headR*0.1}" fill="${brimFill}"/>`;
+    }
+    if (style==='party') {
+      return `<polygon points="${cx},${headY-headR*1.8} ${cx-headR*0.6},${headY-headR*0.88} ${cx+headR*0.6},${headY-headR*0.88}" fill="${fill}"/>
+              <circle cx="${cx}" cy="${headY-headR*1.82}" r="${headR*0.1}" fill="${brimFill}"/>`;
+    }
+    return '';
+  };
+}
+function accSVGFactory(style) {
+  return (s, cx, headY, headR) => {
+    if (style==='glasses') {
+      const ey = headY - headR*0.08, er = headR*0.19;
+      return `<circle cx="${cx-headR*0.32}" cy="${ey}" r="${er}" fill="none" stroke="#555" stroke-width="${s*0.022}"/>
+              <circle cx="${cx+headR*0.32}" cy="${ey}" r="${er}" fill="none" stroke="#555" stroke-width="${s*0.022}"/>
+              <line x1="${cx-headR*0.13}" y1="${ey}" x2="${cx+headR*0.13}" y2="${ey}" stroke="#555" stroke-width="${s*0.02}"/>
+              <line x1="${cx-headR*0.51}" y1="${ey}" x2="${cx-headR*0.7}" y2="${ey-headR*0.04}" stroke="#555" stroke-width="${s*0.02}"/>
+              <line x1="${cx+headR*0.51}" y1="${ey}" x2="${cx+headR*0.7}" y2="${ey-headR*0.04}" stroke="#555" stroke-width="${s*0.02}"/>`;
+    }
+    if (style==='sunglasses') {
+      const ey = headY - headR*0.08, er = headR*0.19;
+      return `<ellipse cx="${cx-headR*0.32}" cy="${ey}" rx="${er}" ry="${er*0.75}" fill="#333" fill-opacity="0.85"/>
+              <ellipse cx="${cx+headR*0.32}" cy="${ey}" rx="${er}" ry="${er*0.75}" fill="#333" fill-opacity="0.85"/>
+              <line x1="${cx-headR*0.13}" y1="${ey}" x2="${cx+headR*0.13}" y2="${ey}" stroke="#333" stroke-width="${s*0.025}"/>`;
+    }
+    if (style==='star') {
+      return `<text x="${cx+headR*0.55}" y="${headY-headR*0.6}" font-size="${headR*0.45}" fill="#F5C842">⭐</text>`;
+    }
+    if (style==='heart') {
+      return `<text x="${cx+headR*0.55}" y="${headY-headR*0.6}" font-size="${headR*0.45}" fill="#E84545">❤️</text>`;
+    }
+    if (style==='bow') {
+      return `<text x="${cx+headR*0.4}" y="${headY-headR*1.0}" font-size="${headR*0.55}" fill="#ec4899">🎀</text>`;
+    }
+    return '';
+  };
+}
+
+const SHOP_ITEMS = [
+  // ── Hats ──────────────────────────────────────────
+  { id:'hat_top',     cat:'hats',   name:'Top Hat',      price:30,  preview:'🎩', fill:'#1a1a1a', svg: hatSVGFactory('#1a1a1a','#333','top') },
+  { id:'hat_beanie',  cat:'hats',   name:'Beanie',       price:20,  preview:'🧢', fill:'#E84545', svg: hatSVGFactory('#E84545','#c22','beanie') },
+  { id:'hat_cowboy',  cat:'hats',   name:'Cowboy Hat',   price:35,  preview:'🤠', fill:'#8B6914', svg: hatSVGFactory('#8B6914','#6b4e0e','cowboy') },
+  { id:'hat_crown',   cat:'hats',   name:'Crown',        price:80,  preview:'👑', fill:'#F5C842', svg: hatSVGFactory('#F5C842','#fff','crown') },
+  { id:'hat_party',   cat:'hats',   name:'Party Hat',    price:15,  preview:'🎉', fill:'#A855F7', svg: hatSVGFactory('#A855F7','#F5C842','party') },
+  { id:'hat_blue',    cat:'hats',   name:'Blue Beanie',  price:20,  preview:'🔵', fill:'#3B8BEB', svg: hatSVGFactory('#3B8BEB','#2563eb','beanie') },
+  { id:'hat_green',   cat:'hats',   name:'Green Beanie', price:20,  preview:'🟢', fill:'#3DD68C', svg: hatSVGFactory('#3DD68C','#2db870','beanie') },
+  // ── Shirts ────────────────────────────────────────
+  { id:'shirt_red',   cat:'shirts', name:'Red Shirt',    price:15,  preview:'🔴', fill:'#E84545' },
+  { id:'shirt_blue',  cat:'shirts', name:'Blue Shirt',   price:15,  preview:'🔵', fill:'#3B8BEB' },
+  { id:'shirt_green', cat:'shirts', name:'Green Shirt',  price:15,  preview:'🟢', fill:'#3DD68C' },
+  { id:'shirt_purple',cat:'shirts', name:'Purple Shirt', price:15,  preview:'🟣', fill:'#A855F7' },
+  { id:'shirt_gold',  cat:'shirts', name:'Gold Shirt',   price:30,  preview:'🟡', fill:'#F5C842' },
+  { id:'shirt_black', cat:'shirts', name:'Black Shirt',  price:20,  preview:'⚫', fill:'#1a1a1a' },
+  { id:'shirt_rainbow',cat:'shirts',name:'Rainbow Shirt',price:60,  preview:'🌈', fill:'url(#rainbowGrad)' },
+  // ── Backgrounds ────────────────────────────────────
+  { id:'bg_gold',     cat:'bg',     name:'Gold Aura',    price:40,  preview:'✨', fill:'#F5C842' },
+  { id:'bg_red',      cat:'bg',     name:'Red Aura',     price:30,  preview:'🔴', fill:'#E84545' },
+  { id:'bg_blue',     cat:'bg',     name:'Blue Aura',    price:30,  preview:'🔵', fill:'#3B8BEB' },
+  { id:'bg_purple',   cat:'bg',     name:'Purple Aura',  price:30,  preview:'🟣', fill:'#A855F7' },
+  { id:'bg_rainbow',  cat:'bg',     name:'Rainbow Aura', price:100, preview:'🌈', fill:'#FF6B6B' },
+  { id:'bg_star',     cat:'bg',     name:'Starfield',    price:80,  preview:'⭐', fill:'#1a1a3a' },
+  // ── Accessories ────────────────────────────────────
+  { id:'acc_glasses', cat:'acc',    name:'Glasses',      price:25,  preview:'👓', fill:'#555', svg: accSVGFactory('glasses') },
+  { id:'acc_sunglass',cat:'acc',    name:'Sunglasses',   price:35,  preview:'🕶️', fill:'#333', svg: accSVGFactory('sunglasses') },
+  { id:'acc_star',    cat:'acc',    name:'Star Sticker', price:15,  preview:'⭐', fill:'#F5C842',svg: accSVGFactory('star') },
+  { id:'acc_heart',   cat:'acc',    name:'Heart Sticker',price:15,  preview:'❤️', fill:'#E84545',svg: accSVGFactory('heart') },
+  { id:'acc_bow',     cat:'acc',    name:'Hair Bow',     price:20,  preview:'🎀', fill:'#ec4899',svg: accSVGFactory('bow') },
+];
+
+function getInventory(username) {
+  try { return JSON.parse(localStorage.getItem(`set_inv_${username}`) || '[]'); } catch { return []; }
+}
+function saveInventory(username, inv) {
+  localStorage.setItem(`set_inv_${username}`, JSON.stringify(inv));
+}
+function ownsItem(username, itemId) {
+  return getInventory(username).includes(itemId);
+}
+function buyItem(username, itemId) {
+  const item = SHOP_ITEMS.find(i=>i.id===itemId);
+  if (!item) return;
+  if (ownsItem(username, itemId)) { equipItem(username, itemId); return; }
+  if (!spendGems(username, item.price)) {
+    showGemToast(-item.price+getGems(username), 'not enough gems!'); return;
+  }
+  const inv = getInventory(username);
+  inv.push(itemId);
+  saveInventory(username, inv);
+  equipItem(username, itemId);
+  refreshShop(username);
+  refreshAvatarDisplay(username);
+  // Sync to Supabase
+  fetch(`${SB_URL}/rest/v1/inventory`, {
+    method:'POST', headers:{...SB_HEADERS,'Prefer':'resolution=ignore-duplicates,return=minimal'},
+    body: JSON.stringify({ username, item_id: itemId })
+  }).catch(()=>{});
+}
+function equipItem(username, itemId) {
+  const item = SHOP_ITEMS.find(i=>i.id===itemId);
+  if (!item) return;
+  const av = getAvatarData(username);
+  const slotMap = { hats:'hatId', shirts:'shirtId', bg:'bgId', acc:'accId' };
+  const slot = slotMap[item.cat];
+  if (!slot) return;
+  // Toggle off if already equipped
+  av[slot] = av[slot]===itemId ? '' : itemId;
+  saveAvatarData(username, av);
+  refreshAvatarDisplay(username);
+  refreshShop(username);
+  // Sync equipped to Supabase
+  fetch(`${SB_URL}/rest/v1/equipped`, {
+    method:'POST', headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates,return=minimal'},
+    body: JSON.stringify({ username, slot, item_id: av[slot]||'' })
+  }).catch(()=>{});
+}
+
+// ── Shop UI ────────────────────────────────────────────────────────────────
+let currentShopTab = 'hats';
+function shopTab(cat) {
+  currentShopTab = cat;
+  ['hats','shirts','bg','acc'].forEach(t => {
+    document.getElementById(`shopTab-${t}`)?.classList.toggle('active', t===cat);
+  });
+  refreshShop(currentUser?.username);
+}
+function refreshShop(username) {
+  const grid = document.getElementById('shop-grid-body');
+  if (!grid || !username) return;
+  const items = SHOP_ITEMS.filter(i=>i.cat===currentShopTab);
+  const av    = getAvatarData(username);
+  const slotMap = { hats:'hatId', shirts:'shirtId', bg:'bgId', acc:'accId' };
+  grid.innerHTML = items.map(item => {
+    const owned    = ownsItem(username, item.id);
+    const slotKey  = slotMap[item.cat];
+    const equipped = av[slotKey]===item.id;
+    const canAfford= getGems(username) >= item.price;
+    return `<div class="shop-item${owned?' owned':''}${equipped?' equipped':''}"
+      onclick="${owned ? `equipItem('${username}','${item.id}')` : `buyItem('${username}','${item.id}')`}"
+      title="${owned?(equipped?'Unequip':'Equip'):`Buy for ${item.price} 💎`}">
+      <span class="shop-item-preview">${item.preview}</span>
+      <span class="shop-item-name">${item.name}</span>
+      ${owned
+        ? (equipped ? '<span class="shop-item-eq-badge">ON</span>' : '<span class="shop-item-owned-badge">✓</span>')
+        : `<span class="shop-item-price${canAfford?'':';opacity:0.4'}">💎 ${item.price}</span>`}
+    </div>`;
+  }).join('');
+  // Update gem displays
+  refreshGemDisplays(username);
+}
+
+// ── Avatar Customiser Modal ────────────────────────────────────────────────
+function openAvatarCustomiser() {
+  const username = currentUser?.username;
+  if (!username) return;
+  const av = getAvatarData(username);
+
+  const swatches = (list, currentVal, key) => list.map(c =>
+    `<div class="av-colour-swatch${currentVal===c?' selected':''}"
+      style="background:${c}"
+      onclick="updateAvatarField('${username}','${key}','${c}',this)"></div>`
+  ).join('');
+
+  const mouthBtns = MOUTHS.map(m =>
+    `<button onclick="updateAvatarMouth('${username}','${m}',this)"
+      style="padding:5px 12px;border-radius:6px;background:${av.mouth===m?'var(--surface2)':'var(--bg)'};border:1px solid ${av.mouth===m?'var(--gold)':'var(--border)'};color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;cursor:pointer">${m}</button>`
+  ).join('');
+
+  showModal({
+    title: 'Customise Avatar',
+    subtitle: 'Choose your look',
+    body: `
+      <div style="display:flex;justify-content:center;margin-bottom:16px">
+        <div id="av-modal-preview">${renderAvatarSVG(av, 100)}</div>
+      </div>
+      <div class="av-section">
+        <div class="av-section-label">Skin Tone</div>
+        <div class="av-colour-row">${swatches(SKIN_TONES, av.skin, 'skin')}</div>
+      </div>
+      <div class="av-section">
+        <div class="av-section-label">Hair Colour</div>
+        <div class="av-colour-row">${swatches(HAIR_COLOURS, av.hair, 'hair')}</div>
+      </div>
+      <div class="av-section">
+        <div class="av-section-label">Eye Colour</div>
+        <div class="av-colour-row">${swatches(EYE_COLOURS, av.eyes, 'eyes')}</div>
+      </div>
+      <div class="av-section">
+        <div class="av-section-label">Expression</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">${mouthBtns}</div>
+      </div>`,
+    buttons: [{ label:'Done', cls:'primary' }]
+  });
+}
+function updateAvatarField(username, key, val, el) {
+  const av = getAvatarData(username);
+  av[key] = val;
+  saveAvatarData(username, av);
+  // Update swatch selection
+  el.closest('.av-colour-row')?.querySelectorAll('.av-colour-swatch').forEach(s=>s.classList.remove('selected'));
+  el.classList.add('selected');
+  // Update modal preview
+  document.getElementById('av-modal-preview').innerHTML = renderAvatarSVG(av, 100);
+  refreshAvatarDisplay(username);
+}
+function updateAvatarMouth(username, mouth, btn) {
+  const av = getAvatarData(username);
+  av.mouth = mouth;
+  saveAvatarData(username, av);
+  btn.closest('[style*="flex"]')?.querySelectorAll('button').forEach(b=>{
+    b.style.background=b===btn?'var(--surface2)':'var(--bg)';
+    b.style.borderColor=b===btn?'var(--gold)':'var(--border)';
+  });
+  document.getElementById('av-modal-preview').innerHTML = renderAvatarSVG(av, 100);
+  refreshAvatarDisplay(username);
+}
+
+// ── Pull inventory/gems/achievements from Supabase on login ────────────────
+async function sbPullPlayerProfile(username) {
+  // Pull gems
+  await sbPullGems(username);
+  // Pull inventory
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/inventory?username=eq.${encodeURIComponent(username)}`,
+      { headers: { apikey:SB_KEY, Authorization:`Bearer ${SB_KEY}` } }
+    );
+    const rows = await res.json();
+    if (rows?.length) {
+      const existing = getInventory(username);
+      const merged   = [...new Set([...existing, ...rows.map(r=>r.item_id)])];
+      saveInventory(username, merged);
+    }
+  } catch {}
+  // Pull equipped
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/equipped?username=eq.${encodeURIComponent(username)}`,
+      { headers: { apikey:SB_KEY, Authorization:`Bearer ${SB_KEY}` } }
+    );
+    const rows = await res.json();
+    if (rows?.length) {
+      const av = getAvatarData(username);
+      const slotMap = { hatId:'hatId', shirtId:'shirtId', bgId:'bgId', accId:'accId' };
+      rows.forEach(r => { if(slotMap[r.slot]) av[r.slot] = r.item_id; });
+      saveAvatarData(username, av);
+    }
+  } catch {}
+  // Pull achievements
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/achievements?username=eq.${encodeURIComponent(username)}`,
+      { headers: { apikey:SB_KEY, Authorization:`Bearer ${SB_KEY}` } }
+    );
+    const rows = await res.json();
+    if (rows?.length) {
+      const existing = getEarnedAchievements(username);
+      const merged   = [...new Set([...existing, ...rows.map(r=>r.achievement_id)])];
+      saveEarnedAchievements(username, merged);
+    }
+  } catch {}
 }
 
 // End of script
