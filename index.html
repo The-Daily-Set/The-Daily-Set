@@ -3322,12 +3322,12 @@ function renderAchievements(username) {
 // ═══════════════════════════════════════════════════════════════════════════
 // AVATAR SYSTEM — pixel-art style SVG rendered from avatar data
 // ═══════════════════════════════════════════════════════════════════════════
-const AVATAR_DEFAULTS = { skin:'#F5C5A3', hair:'#4A2E1A', eyes:'#3B5998', mouth:'smile', hatId:'', shirtId:'', bgId:'', accId:'' };
+const AVATAR_DEFAULTS = { skin:'#FFCC99', hair:'#4A2E1A', eyeCol:'#3B5998', mouth:'smile', hatId:'', shirtId:'', bgId:'', accId:'' };
 
-const SKIN_TONES   = ['#FADDBB','#F5C5A3','#D4956A','#A0632A','#6B3A1F','#3D1A08'];
-const HAIR_COLOURS = ['#F5E6C8','#E8A857','#B87333','#8B4513','#4A2E1A','#1A1A1A','#CC0000','#6A0DAD','#2196F3'];
-const EYE_COLOURS  = ['#3B5998','#2E7D32','#B71C1C','#795548','#00838F','#F57F17'];
-const MOUTHS       = ['smile','grin','straight','smirk'];
+const SKIN_TONES   = ['#FFE0B2','#FFCC99','#E8A87C','#C68642','#8D5524','#4A2500'];
+const HAIR_COLOURS = ['#F5E6C8','#F0C040','#CC8833','#8B4513','#4A2E1A','#1A1A1A','#E84545','#9C27B0','#2196F3','#3DD68C'];
+const EYE_COLOURS  = ['#3B5998','#2E8B57','#E84545','#8B4513','#00838F','#9C27B0','#E67E22','#1A1A1A'];
+const MOUTHS       = ['smile','big_smile','straight','sad','surprised'];
 
 function getAvatarData(username) {
   try { return { ...AVATAR_DEFAULTS, ...JSON.parse(localStorage.getItem(`set_av_${username}`) || '{}') }; }
@@ -3337,67 +3337,181 @@ function saveAvatarData(username, data) {
   localStorage.setItem(`set_av_${username}`, JSON.stringify(data));
 }
 
-function renderAvatarSVG(av, size=64) {
-  const s = size;
-  const cx = s/2, headY = s*0.3, headR = s*0.22;
+function renderAvatarSVG(av, size=100) {
+  const s  = size;
+  const sw = Math.max(1.5, s * 0.028); // stroke width scales with size
+
+  // Layout — Quizizz style: big round head, small body blob at bottom
+  const cx   = s * 0.5;
+  const cy   = s * 0.5;
+  // Head is the dominant element — large circle, centred slightly up
+  const hcx  = cx;
+  const hcy  = s * 0.42;
+  const hr   = s * 0.32;  // head radius — big!
 
   // Background frame
-  const bg = av.bgId ? SHOP_ITEMS.find(i=>i.id===av.bgId) : null;
-  const bgFill = bg ? bg.fill : 'transparent';
-  const bgCircle = bg ? `<circle cx="${cx}" cy="${cx}" r="${s*0.48}" fill="${bgFill}" opacity="0.6"/>` : '';
+  const bg      = av.bgId ? SHOP_ITEMS.find(i=>i.id===av.bgId) : null;
+  const bgSVG   = bg ? renderBgFrame(s, bg) : `<circle cx="${cx}" cy="${cy}" r="${s*0.49}" fill="#1e1e24" opacity="0.0"/>`;
 
-  // Body / shirt
-  const shirt = av.shirtId ? SHOP_ITEMS.find(i=>i.id===av.shirtId) : null;
-  const shirtCol = shirt ? shirt.fill : '#607D8B';
-  const bodyY = headY + headR * 0.85;
-  const bodyH = s * 0.28;
+  // Shirt / body colour
+  const shirt   = av.shirtId ? SHOP_ITEMS.find(i=>i.id===av.shirtId) : null;
+  const bodyCol = shirt ? shirt.fill : '#607D8B';
+  const bodyDark= shirt ? darkenHex(shirt.fill, 25) : '#455A64';
 
   // Hat
-  const hat = av.hatId ? SHOP_ITEMS.find(i=>i.id===av.hatId) : null;
-  const hatSVG = hat ? hat.svg(s, cx, headY, headR) : '';
+  const hat    = av.hatId ? SHOP_ITEMS.find(i=>i.id===av.hatId) : null;
+  const hatSVG = hat ? hat.svg(s, hcx, hcy, hr, sw) : '';
 
   // Accessory
-  const acc = av.accId ? SHOP_ITEMS.find(i=>i.id===av.accId) : null;
-  const accSVG = acc ? acc.svg(s, cx, headY, headR) : '';
+  const acc    = av.accId ? SHOP_ITEMS.find(i=>i.id===av.accId) : null;
+  const accSVG = acc ? acc.svg(s, hcx, hcy, hr, sw) : '';
 
-  // Mouth path
-  const mouthY = headY + headR * 0.35;
-  const mouthW = headR * 0.45;
-  const mouths = {
-    smile:    `<path d="M${cx-mouthW},${mouthY} Q${cx},${mouthY+headR*0.28} ${cx+mouthW},${mouthY}" fill="none" stroke="#8B2020" stroke-width="${s*0.025}" stroke-linecap="round"/>`,
-    grin:     `<path d="M${cx-mouthW},${mouthY} Q${cx},${mouthY+headR*0.38} ${cx+mouthW},${mouthY}" fill="#8B2020" stroke="#8B2020" stroke-width="1"/>`,
-    straight: `<line x1="${cx-mouthW}" y1="${mouthY+headR*0.1}" x2="${cx+mouthW}" y2="${mouthY+headR*0.1}" stroke="#8B2020" stroke-width="${s*0.025}" stroke-linecap="round"/>`,
-    smirk:    `<path d="M${cx-mouthW*0.5},${mouthY+headR*0.05} Q${cx+mouthW*0.3},${mouthY+headR*0.28} ${cx+mouthW},${mouthY}" fill="none" stroke="#8B2020" stroke-width="${s*0.025}" stroke-linecap="round"/>`,
-  };
+  // Skin shadow/shading
+  const skinDark = darkenHex(av.skin, 20);
 
-  return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg">
-    ${bgCircle}
-    <!-- Hair back -->
-    <ellipse cx="${cx}" cy="${headY-headR*0.05}" rx="${headR*1.05}" ry="${headR*1.1}" fill="${av.hair}"/>
-    <!-- Body -->
-    <path d="M${cx-headR*0.85},${bodyY+bodyH} Q${cx-headR},${bodyY} ${cx},${bodyY} Q${cx+headR},${bodyY} ${cx+headR*0.85},${bodyY+bodyH} Z" fill="${shirtCol}"/>
-    <!-- Neck -->
-    <rect x="${cx-headR*0.22}" y="${bodyY-headR*0.1}" width="${headR*0.44}" height="${headR*0.28}" fill="${av.skin}"/>
+  // Hair — drawn as a dome behind head
+  const hairSVG = buildHairSVG(hcx, hcy, hr, av.hair, sw);
+
+  // Eyes — Quizizz style: large white ovals, bold outline, big coloured iris, white highlight
+  const ex1  = hcx - hr * 0.33;
+  const ex2  = hcx + hr * 0.33;
+  const ey   = hcy - hr * 0.04;
+  const erx  = hr * 0.22;
+  const ery  = hr * 0.26;
+  const eyesSVG = `
+    <ellipse cx="${ex1}" cy="${ey}" rx="${erx}" ry="${ery}" fill="white" stroke="#1a1a1a" stroke-width="${sw}"/>
+    <ellipse cx="${ex2}" cy="${ey}" rx="${erx}" ry="${ery}" fill="white" stroke="#1a1a1a" stroke-width="${sw}"/>
+    <ellipse cx="${ex1}" cy="${ey+ery*0.1}" rx="${erx*0.62}" ry="${ery*0.62}" fill="${av.eyeCol}"/>
+    <ellipse cx="${ex2}" cy="${ey+ery*0.1}" rx="${erx*0.62}" ry="${ery*0.62}" fill="${av.eyeCol}"/>
+    <ellipse cx="${ex1}" cy="${ey+ery*0.15}" rx="${erx*0.34}" ry="${ery*0.34}" fill="#1a1a1a"/>
+    <ellipse cx="${ex2}" cy="${ey+ery*0.15}" rx="${erx*0.34}" ry="${ery*0.34}" fill="#1a1a1a"/>
+    <ellipse cx="${ex1-erx*0.22}" cy="${ey-ery*0.18}" rx="${erx*0.14}" ry="${ery*0.14}" fill="white" opacity="0.9"/>
+    <ellipse cx="${ex2-erx*0.22}" cy="${ey-ery*0.18}" rx="${erx*0.14}" ry="${ery*0.14}" fill="white" opacity="0.9"/>`;
+
+  // Cheeks — rosy blush circles
+  const cheeksSVG = `
+    <ellipse cx="${ex1-erx*0.6}" cy="${ey+ery*0.8}" rx="${hr*0.15}" ry="${hr*0.09}" fill="#FF9999" opacity="0.55"/>
+    <ellipse cx="${ex2+erx*0.6}" cy="${ey+ery*0.8}" rx="${hr*0.15}" ry="${hr*0.09}" fill="#FF9999" opacity="0.55"/>`;
+
+  // Nose — two small dots like Quizizz
+  const noseSVG = `
+    <ellipse cx="${hcx-hr*0.1}" cy="${hcy+hr*0.18}" rx="${hr*0.055}" ry="${hr*0.04}" fill="${skinDark}" opacity="0.5"/>
+    <ellipse cx="${hcx+hr*0.1}" cy="${hcy+hr*0.18}" rx="${hr*0.055}" ry="${hr*0.04}" fill="${skinDark}" opacity="0.5"/>`;
+
+  // Mouth
+  const mouthSVG = buildMouthSVG(av.mouth, hcx, hcy, hr, sw);
+
+  // Body / torso — Quizizz has a small round body blob peeking from the bottom
+  const bdy    = hcy + hr * 0.75;
+  const bradx  = hr * 0.72;
+  const brady  = s * 0.22;
+  const armLx  = hcx - bradx * 0.85;
+  const armRx  = hcx + bradx * 0.85;
+  const armY   = bdy + brady * 0.1;
+  const bodySVG = `
+    <!-- Arms -->
+    <ellipse cx="${armLx}" cy="${armY}" rx="${hr*0.18}" ry="${hr*0.38}" fill="${bodyCol}" stroke="#1a1a1a" stroke-width="${sw}" transform="rotate(-20 ${armLx} ${armY})"/>
+    <ellipse cx="${armRx}" cy="${armY}" rx="${hr*0.18}" ry="${hr*0.38}" fill="${bodyCol}" stroke="#1a1a1a" stroke-width="${sw}" transform="rotate(20 ${armRx} ${armY})"/>
+    <!-- Body blob -->
+    <ellipse cx="${hcx}" cy="${bdy+brady*0.4}" rx="${bradx}" ry="${brady}" fill="${bodyCol}" stroke="#1a1a1a" stroke-width="${sw}"/>
+    <!-- Body shading line -->
+    <path d="M${hcx-bradx*0.5},${bdy+brady*0.15} Q${hcx},${bdy+brady*0.35} ${hcx+bradx*0.5},${bdy+brady*0.15}" fill="none" stroke="${bodyDark}" stroke-width="${sw*0.8}" opacity="0.4"/>`;
+
+  return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg" style="display:block">
+    <!-- Background -->
+    ${bgSVG}
+    <!-- Body (behind head) -->
+    ${bodySVG}
+    <!-- Hair back (behind head) -->
+    ${hairSVG.back}
     <!-- Head -->
-    <ellipse cx="${cx}" cy="${headY}" rx="${headR}" ry="${headR*1.05}" fill="${av.skin}"/>
+    <circle cx="${hcx}" cy="${hcy}" r="${hr}" fill="${av.skin}" stroke="#1a1a1a" stroke-width="${sw}"/>
+    <!-- Skin shading -->
+    <circle cx="${hcx+hr*0.25}" cy="${hcy+hr*0.25}" r="${hr*0.4}" fill="${skinDark}" opacity="0.07"/>
     <!-- Hair front -->
-    <ellipse cx="${cx}" cy="${headY-headR*0.72}" rx="${headR*0.95}" ry="${headR*0.45}" fill="${av.hair}"/>
+    ${hairSVG.front}
     <!-- Eyes -->
-    <ellipse cx="${cx-headR*0.32}" cy="${headY-headR*0.08}" rx="${headR*0.16}" ry="${headR*0.19}" fill="white"/>
-    <ellipse cx="${cx+headR*0.32}" cy="${headY-headR*0.08}" rx="${headR*0.16}" ry="${headR*0.19}" fill="white"/>
-    <ellipse cx="${cx-headR*0.32}" cy="${headY-headR*0.06}" rx="${headR*0.09}" ry="${headR*0.11}" fill="${av.eyes}"/>
-    <ellipse cx="${cx+headR*0.32}" cy="${headY-headR*0.06}" rx="${headR*0.09}" ry="${headR*0.11}" fill="${av.eyes}"/>
-    <ellipse cx="${cx-headR*0.29}" cy="${headY-headR*0.1}" rx="${headR*0.04}" ry="${headR*0.04}" fill="white"/>
-    <ellipse cx="${cx+headR*0.35}" cy="${headY-headR*0.1}" rx="${headR*0.04}" ry="${headR*0.04}" fill="white"/>
+    ${eyesSVG}
+    <!-- Cheeks -->
+    ${cheeksSVG}
     <!-- Nose -->
-    <ellipse cx="${cx}" cy="${headY+headR*0.12}" rx="${headR*0.07}" ry="${headR*0.05}" fill="${av.skin}" stroke="${av.skin==='#FADDBB'?'#e0a88a':av.skin}" stroke-width="1.5"/>
+    ${noseSVG}
     <!-- Mouth -->
-    ${mouths[av.mouth]||mouths.smile}
+    ${mouthSVG}
     <!-- Hat -->
     ${hatSVG}
     <!-- Accessory -->
     ${accSVG}
   </svg>`;
+}
+
+function darkenHex(hex, pct) {
+  let c = hex.replace('#','');
+  if (c.length===3) c=c.split('').map(x=>x+x).join('');
+  let r=parseInt(c.slice(0,2),16), g=parseInt(c.slice(2,4),16), b=parseInt(c.slice(4,6),16);
+  r=Math.max(0,r-pct); g=Math.max(0,g-pct); b=Math.max(0,b-pct);
+  return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+
+function buildHairSVG(hcx, hcy, hr, hairCol, sw) {
+  const dark = darkenHex(hairCol, 30);
+  const back = `
+    <ellipse cx="${hcx}" cy="${hcy-hr*0.1}" rx="${hr*1.05}" ry="${hr*1.08}" fill="${hairCol}" stroke="#1a1a1a" stroke-width="${sw}"/>`;
+  const front = `
+    <!-- Hair top dome -->
+    <path d="M${hcx-hr*0.95},${hcy-hr*0.1}
+             Q${hcx-hr*0.9},${hcy-hr*1.35}
+               ${hcx},${hcy-hr*1.22}
+             Q${hcx+hr*0.9},${hcy-hr*1.35}
+               ${hcx+hr*0.95},${hcy-hr*0.1}"
+          fill="${hairCol}" stroke="#1a1a1a" stroke-width="${sw}"/>
+    <!-- Hair highlight -->
+    <path d="M${hcx-hr*0.3},${hcy-hr*1.15} Q${hcx},${hcy-hr*1.3} ${hcx+hr*0.25},${hcy-hr*1.12}"
+          fill="none" stroke="white" stroke-width="${sw*0.7}" opacity="0.25" stroke-linecap="round"/>`;
+  return { back, front };
+}
+
+function buildMouthSVG(type, hcx, hcy, hr, sw) {
+  const my = hcy + hr * 0.38;
+  const mw = hr * 0.42;
+  const t  = sw * 1.4;
+  if (type==='big_smile') {
+    return `<path d="M${hcx-mw},${my} Q${hcx},${my+hr*0.38} ${hcx+mw},${my}" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="${t}" stroke-linecap="round"/>
+            <path d="M${hcx-mw*0.85},${my+hr*0.04} Q${hcx},${my+hr*0.3} ${hcx+mw*0.85},${my+hr*0.04}" fill="white" stroke="none"/>`;
+  }
+  if (type==='smile') {
+    return `<path d="M${hcx-mw*0.8},${my} Q${hcx},${my+hr*0.28} ${hcx+mw*0.8},${my}" fill="none" stroke="#1a1a1a" stroke-width="${t}" stroke-linecap="round"/>`;
+  }
+  if (type==='straight') {
+    return `<line x1="${hcx-mw*0.7}" y1="${my+hr*0.05}" x2="${hcx+mw*0.7}" y2="${my+hr*0.05}" stroke="#1a1a1a" stroke-width="${t}" stroke-linecap="round"/>`;
+  }
+  if (type==='sad') {
+    return `<path d="M${hcx-mw*0.8},${my+hr*0.22} Q${hcx},${my-hr*0.06} ${hcx+mw*0.8},${my+hr*0.22}" fill="none" stroke="#1a1a1a" stroke-width="${t}" stroke-linecap="round"/>`;
+  }
+  if (type==='surprised') {
+    return `<ellipse cx="${hcx}" cy="${my+hr*0.1}" rx="${mw*0.45}" ry="${hr*0.22}" fill="#1a1a1a"/>
+            <ellipse cx="${hcx}" cy="${my+hr*0.15}" rx="${mw*0.3}" ry="${hr*0.14}" fill="white" opacity="0.25"/>`;
+  }
+  return '';
+}
+
+function renderBgFrame(s, bg) {
+  const cx = s*0.5, cy = s*0.5, r = s*0.49;
+  if (bg.id==='bg_star') {
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#0a0a1e"/>
+            <circle cx="${cx*0.4}" cy="${cy*0.35}" r="${s*0.015}" fill="white" opacity="0.7"/>
+            <circle cx="${cx*1.6}" cy="${cy*0.5}" r="${s*0.01}" fill="white" opacity="0.6"/>
+            <circle cx="${cx*0.7}" cy="${cy*1.4}" r="${s*0.012}" fill="white" opacity="0.5"/>
+            <circle cx="${cx*1.5}" cy="${cy*1.5}" r="${s*0.018}" fill="white" opacity="0.8"/>`;
+  }
+  if (bg.id==='bg_rainbow') {
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#FFE0E0"/>
+            <path d="M${cx-r},${cy} A${r},${r} 0 0,1 ${cx+r},${cy}" fill="none" stroke="#FF6B6B" stroke-width="${s*0.045}" opacity="0.5"/>
+            <path d="M${cx-r*0.85},${cy} A${r*0.85},${r*0.85} 0 0,1 ${cx+r*0.85},${cy}" fill="none" stroke="#FFD93D" stroke-width="${s*0.045}" opacity="0.5"/>
+            <path d="M${cx-r*0.7},${cy} A${r*0.7},${r*0.7} 0 0,1 ${cx+r*0.7},${cy}" fill="none" stroke="#6BCB77" stroke-width="${s*0.045}" opacity="0.5"/>`;
+  }
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${bg.fill}" opacity="0.25"/>
+          <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${bg.fill}" stroke-width="${s*0.04}" opacity="0.6"/>`;
 }
 
 // Render avatar for a given username (uses their stored data)
@@ -3409,64 +3523,78 @@ function renderAvatarSVGForUser(username, size=40) {
 function refreshAvatarDisplay(username) {
   const av  = getAvatarData(username);
   const el  = document.getElementById('home-avatar-display');
-  if (el) el.innerHTML = renderAvatarSVG(av, 100);
+  if (el) el.innerHTML = renderAvatarSVG(av, 120);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SHOP ITEMS
 // ═══════════════════════════════════════════════════════════════════════════
 function hatSVGFactory(fill, brimFill, style) {
-  return (s, cx, headY, headR) => {
+  return (s, hcx, hcy, hr, sw) => {
+    const topY = hcy - hr;
     if (style==='top') {
-      return `<rect x="${cx-headR*0.6}" y="${headY-headR*1.72}" width="${headR*1.2}" height="${headR*0.8}" rx="${headR*0.08}" fill="${fill}"/>
-              <rect x="${cx-headR*0.85}" y="${headY-headR*0.94}" width="${headR*1.7}" height="${headR*0.2}" rx="${headR*0.04}" fill="${brimFill}"/>`;
+      return `<rect x="${hcx-hr*0.55}" y="${topY-hr*0.8}" width="${hr*1.1}" height="${hr*0.82}" rx="${hr*0.08}" fill="${fill}" stroke="#1a1a1a" stroke-width="${sw}"/>
+              <rect x="${hcx-hr*0.82}" y="${topY-hr*0.02}" width="${hr*1.64}" height="${hr*0.2}" rx="${hr*0.06}" fill="${brimFill}" stroke="#1a1a1a" stroke-width="${sw}"/>`;
     }
     if (style==='beanie') {
-      return `<ellipse cx="${cx}" cy="${headY-headR*0.82}" rx="${headR*0.95}" ry="${headR*0.55}" fill="${fill}"/>
-              <ellipse cx="${cx}" cy="${headY-headR*0.28}" rx="${headR*0.98}" ry="${headR*0.22}" fill="${brimFill}"/>`;
+      return `<ellipse cx="${hcx}" cy="${topY-hr*0.05}" rx="${hr*1.0}" ry="${hr*0.65}" fill="${fill}" stroke="#1a1a1a" stroke-width="${sw}"/>
+              <ellipse cx="${hcx}" cy="${topY+hr*0.55}" rx="${hr*1.02}" ry="${hr*0.2}" fill="${brimFill}" stroke="#1a1a1a" stroke-width="${sw}"/>
+              <circle cx="${hcx}" cy="${topY-hr*0.62}" r="${hr*0.14}" fill="${brimFill}" stroke="#1a1a1a" stroke-width="${sw*0.7}"/>`;
     }
     if (style==='cowboy') {
-      return `<ellipse cx="${cx}" cy="${headY-headR*0.9}" rx="${headR*0.75}" ry="${headR*0.55}" fill="${fill}"/>
-              <ellipse cx="${cx}" cy="${headY-headR*0.35}" rx="${headR*1.3}" ry="${headR*0.2}" fill="${brimFill}"/>`;
+      return `<ellipse cx="${hcx}" cy="${topY-hr*0.05}" rx="${hr*0.72}" ry="${hr*0.6}" fill="${fill}" stroke="#1a1a1a" stroke-width="${sw}"/>
+              <path d="M${hcx-hr*1.3},${topY+hr*0.5} Q${hcx-hr*0.7},${topY+hr*0.18} ${hcx},${topY+hr*0.22} Q${hcx+hr*0.7},${topY+hr*0.18} ${hcx+hr*1.3},${topY+hr*0.5}" fill="${brimFill}" stroke="#1a1a1a" stroke-width="${sw}"/>`;
     }
     if (style==='crown') {
-      const pts = `${cx-headR*0.7},${headY-headR*0.9} ${cx-headR*0.55},${headY-headR*1.5} ${cx-headR*0.2},${headY-headR*1.1} ${cx},${headY-headR*1.6} ${cx+headR*0.2},${headY-headR*1.1} ${cx+headR*0.55},${headY-headR*1.5} ${cx+headR*0.7},${headY-headR*0.9}`;
-      return `<polygon points="${pts}" fill="${fill}"/>
-              <circle cx="${cx-headR*0.35}" cy="${headY-headR*1.42}" r="${headR*0.1}" fill="${brimFill}"/>
-              <circle cx="${cx}" cy="${headY-headR*1.52}" r="${headR*0.1}" fill="${brimFill}"/>
-              <circle cx="${cx+headR*0.35}" cy="${headY-headR*1.42}" r="${headR*0.1}" fill="${brimFill}"/>`;
+      const pts = `${hcx-hr*0.7},${topY+hr*0.08} ${hcx-hr*0.55},${topY-hr*0.7} ${hcx-hr*0.18},${topY-hr*0.3} ${hcx},${topY-hr*0.8} ${hcx+hr*0.18},${topY-hr*0.3} ${hcx+hr*0.55},${topY-hr*0.7} ${hcx+hr*0.7},${topY+hr*0.08}`;
+      return `<polygon points="${pts}" fill="${fill}" stroke="#1a1a1a" stroke-width="${sw}" stroke-linejoin="round"/>
+              <circle cx="${hcx-hr*0.35}" cy="${topY-hr*0.62}" r="${hr*0.1}" fill="${brimFill}"/>
+              <circle cx="${hcx}" cy="${topY-hr*0.72}" r="${hr*0.1}" fill="${brimFill}"/>
+              <circle cx="${hcx+hr*0.35}" cy="${topY-hr*0.62}" r="${hr*0.1}" fill="${brimFill}"/>`;
     }
     if (style==='party') {
-      return `<polygon points="${cx},${headY-headR*1.8} ${cx-headR*0.6},${headY-headR*0.88} ${cx+headR*0.6},${headY-headR*0.88}" fill="${fill}"/>
-              <circle cx="${cx}" cy="${headY-headR*1.82}" r="${headR*0.1}" fill="${brimFill}"/>`;
+      return `<polygon points="${hcx},${topY-hr*1.0} ${hcx-hr*0.65},${topY+hr*0.06} ${hcx+hr*0.65},${topY+hr*0.06}" fill="${fill}" stroke="#1a1a1a" stroke-width="${sw}" stroke-linejoin="round"/>
+              <circle cx="${hcx}" cy="${topY-hr*1.02}" r="${hr*0.12}" fill="${brimFill}" stroke="#1a1a1a" stroke-width="${sw*0.7}"/>
+              <circle cx="${hcx-hr*0.3}" cy="${topY-hr*0.35}" r="${hr*0.07}" fill="${brimFill}" opacity="0.8"/>
+              <circle cx="${hcx+hr*0.28}" cy="${topY-hr*0.55}" r="${hr*0.06}" fill="white" opacity="0.8"/>`;
     }
     return '';
   };
 }
+
 function accSVGFactory(style) {
-  return (s, cx, headY, headR) => {
+  return (s, hcx, hcy, hr, sw) => {
+    // Eye positions match the avatar eye layout
+    const ex1 = hcx - hr*0.33, ex2 = hcx + hr*0.33;
+    const ey  = hcy - hr*0.04;
+    const er  = hr*0.22;
     if (style==='glasses') {
-      const ey = headY - headR*0.08, er = headR*0.19;
-      return `<circle cx="${cx-headR*0.32}" cy="${ey}" r="${er}" fill="none" stroke="#555" stroke-width="${s*0.022}"/>
-              <circle cx="${cx+headR*0.32}" cy="${ey}" r="${er}" fill="none" stroke="#555" stroke-width="${s*0.022}"/>
-              <line x1="${cx-headR*0.13}" y1="${ey}" x2="${cx+headR*0.13}" y2="${ey}" stroke="#555" stroke-width="${s*0.02}"/>
-              <line x1="${cx-headR*0.51}" y1="${ey}" x2="${cx-headR*0.7}" y2="${ey-headR*0.04}" stroke="#555" stroke-width="${s*0.02}"/>
-              <line x1="${cx+headR*0.51}" y1="${ey}" x2="${cx+headR*0.7}" y2="${ey-headR*0.04}" stroke="#555" stroke-width="${s*0.02}"/>`;
+      return `<circle cx="${ex1}" cy="${ey}" r="${er*1.08}" fill="none" stroke="#555" stroke-width="${sw*1.1}"/>
+              <circle cx="${ex2}" cy="${ey}" r="${er*1.08}" fill="none" stroke="#555" stroke-width="${sw*1.1}"/>
+              <line x1="${ex1+er*1.05}" y1="${ey}" x2="${ex2-er*1.05}" y2="${ey}" stroke="#555" stroke-width="${sw}"/>
+              <line x1="${ex1-er*1.05}" y1="${ey}" x2="${ex1-er*1.4}" y2="${ey-hr*0.06}" stroke="#555" stroke-width="${sw}"/>
+              <line x1="${ex2+er*1.05}" y1="${ey}" x2="${ex2+er*1.4}" y2="${ey-hr*0.06}" stroke="#555" stroke-width="${sw}"/>`;
     }
     if (style==='sunglasses') {
-      const ey = headY - headR*0.08, er = headR*0.19;
-      return `<ellipse cx="${cx-headR*0.32}" cy="${ey}" rx="${er}" ry="${er*0.75}" fill="#333" fill-opacity="0.85"/>
-              <ellipse cx="${cx+headR*0.32}" cy="${ey}" rx="${er}" ry="${er*0.75}" fill="#333" fill-opacity="0.85"/>
-              <line x1="${cx-headR*0.13}" y1="${ey}" x2="${cx+headR*0.13}" y2="${ey}" stroke="#333" stroke-width="${s*0.025}"/>`;
+      return `<rect x="${ex1-er*1.1}" y="${ey-er*0.9}" width="${er*2.2}" height="${er*1.6}" rx="${er*0.5}" fill="#222" fill-opacity="0.88" stroke="#444" stroke-width="${sw}"/>
+              <rect x="${ex2-er*1.1}" y="${ey-er*0.9}" width="${er*2.2}" height="${er*1.6}" rx="${er*0.5}" fill="#222" fill-opacity="0.88" stroke="#444" stroke-width="${sw}"/>
+              <line x1="${ex1+er*1.1}" y1="${ey}" x2="${ex2-er*1.1}" y2="${ey}" stroke="#444" stroke-width="${sw*1.2}"/>
+              <line x1="${ex1-er*1.1}" y1="${ey}" x2="${ex1-er*1.5}" y2="${ey-hr*0.06}" stroke="#444" stroke-width="${sw}"/>
+              <line x1="${ex2+er*1.1}" y1="${ey}" x2="${ex2+er*1.5}" y2="${ey-hr*0.06}" stroke="#444" stroke-width="${sw}"/>
+              <ellipse cx="${ex1}" cy="${ey-er*0.2}" rx="${er*0.5}" ry="${er*0.3}" fill="white" opacity="0.12"/>
+              <ellipse cx="${ex2}" cy="${ey-er*0.2}" rx="${er*0.5}" ry="${er*0.3}" fill="white" opacity="0.12"/>`;
     }
     if (style==='star') {
-      return `<text x="${cx+headR*0.55}" y="${headY-headR*0.6}" font-size="${headR*0.45}" fill="#F5C842">⭐</text>`;
+      return `<text x="${hcx+hr*0.62}" y="${hcy-hr*0.55}" font-size="${hr*0.5}" fill="#F5C842" stroke="#1a1a1a" stroke-width="${sw*0.5}" paint-order="stroke">⭐</text>`;
     }
     if (style==='heart') {
-      return `<text x="${cx+headR*0.55}" y="${headY-headR*0.6}" font-size="${headR*0.45}" fill="#E84545">❤️</text>`;
+      return `<text x="${hcx+hr*0.62}" y="${hcy-hr*0.55}" font-size="${hr*0.5}" fill="#E84545" stroke="#1a1a1a" stroke-width="${sw*0.5}" paint-order="stroke">❤️</text>`;
     }
     if (style==='bow') {
-      return `<text x="${cx+headR*0.4}" y="${headY-headR*1.0}" font-size="${headR*0.55}" fill="#ec4899">🎀</text>`;
+      const bx = hcx + hr*0.5, by = hcy - hr*1.08;
+      return `<path d="M${bx},${by} L${bx-hr*0.28},${by-hr*0.22} L${bx-hr*0.24},${by+hr*0.06} Z" fill="#ec4899" stroke="#1a1a1a" stroke-width="${sw*0.7}"/>
+              <path d="M${bx},${by} L${bx+hr*0.28},${by-hr*0.22} L${bx+hr*0.24},${by+hr*0.06} Z" fill="#ec4899" stroke="#1a1a1a" stroke-width="${sw*0.7}"/>
+              <circle cx="${bx}" cy="${by}" r="${hr*0.08}" fill="#ff80c0" stroke="#1a1a1a" stroke-width="${sw*0.6}"/>`;
     }
     return '';
   };
@@ -3619,7 +3747,7 @@ function openAvatarCustomiser() {
       </div>
       <div class="av-section">
         <div class="av-section-label">Eye Colour</div>
-        <div class="av-colour-row">${swatches(EYE_COLOURS, av.eyes, 'eyes')}</div>
+        <div class="av-colour-row">${swatches(EYE_COLOURS, av.eyeCol, 'eyeCol')}</div>
       </div>
       <div class="av-section">
         <div class="av-section-label">Expression</div>
