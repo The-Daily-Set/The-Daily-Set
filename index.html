@@ -352,33 +352,7 @@
   .ach-new  { animation:achPop 0.5s cubic-bezier(0.175,0.885,0.32,1.275); }
   @keyframes achPop { 0%{transform:scale(0.7);opacity:0} 100%{transform:scale(1);opacity:1} }
 
-  /* ── AVATAR ── */
-  .avatar-wrap { display:flex;flex-direction:column;align-items:center;gap:8px; }
-  .avatar-svg-wrap { position:relative;cursor:pointer;transition:transform 0.15s; }
-  .avatar-svg-wrap:hover { transform:translateY(-2px); }
-  .avatar-edit-hint { font-size:0.58rem;color:var(--muted);text-align:center;letter-spacing:0.05em; }
-
-  /* ── SHOP ── */
-  .shop-tabs { display:flex;gap:0;border-radius:8px;overflow:hidden;border:1px solid var(--border);margin-bottom:14px; }
-  .shop-tab { flex:1;padding:8px 4px;background:none;border:none;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.65rem;cursor:pointer;transition:all 0.15s; }
-  .shop-tab.active { background:var(--surface2);color:var(--text); }
-  .shop-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px; }
-  .shop-item { background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:all 0.15s;position:relative; }
-  .shop-item:hover:not(.owned) { border-color:rgba(99,202,255,0.4);transform:translateY(-2px); }
-  .shop-item.owned { border-color:rgba(61,214,140,0.35);background:rgba(61,214,140,0.06); }
-  .shop-item.equipped { border-color:var(--gold);background:rgba(245,200,66,0.08); }
-  .shop-item-preview { font-size:2rem;line-height:1; }
-  .shop-item-name { font-size:0.6rem;color:var(--text);text-align:center;font-weight:500; }
-  .shop-item-price { font-size:0.62rem;color:#63caff; }
-  .shop-item-owned-badge { position:absolute;top:4px;right:4px;font-size:0.55rem;background:rgba(61,214,140,0.2);color:var(--green);border-radius:4px;padding:1px 4px; }
-  .shop-item-eq-badge { position:absolute;top:4px;right:4px;font-size:0.55rem;background:rgba(245,200,66,0.2);color:var(--gold);border-radius:4px;padding:1px 4px; }
-
   /* ── AVATAR CUSTOMISER MODAL ── */
-  .av-section { margin-bottom:16px; }
-  .av-section-label { font-size:0.58rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:8px; }
-  .av-colour-row { display:flex;gap:7px;flex-wrap:wrap; }
-  .av-colour-swatch { width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all 0.15s; }
-  .av-colour-swatch.selected { border-color:var(--gold);transform:scale(1.15); }
 </style>
 </head>
 <body>
@@ -481,42 +455,15 @@
         </div>
       </div>
 
-      <!-- Avatar + Gems card -->
-      <div class="home-card" id="home-avatar-card">
-        <div class="home-card-title" style="display:flex;align-items:center;justify-content:space-between">
-          <span>🧑 Your Avatar</span>
-          <span class="gem-badge"><span class="gem-icon">💎</span><span id="hs-gems">0</span></span>
+      <!-- Achievements card — collapsible, shown for all logged-in users -->
+      <div class="home-card home-full-width" id="home-ach-card" style="display:none">
+        <div class="home-card-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0">
+          <span>🏆 Achievements <span id="ach-progress" style="font-size:0.68rem;color:var(--muted);font-weight:400">0 / 0</span></span>
+          <button class="home-dev-collapse-btn" id="home-ach-toggle" style="color:var(--gold)" onclick="homeAchToggle()">▾</button>
         </div>
-        <div class="avatar-wrap">
-          <div class="avatar-svg-wrap" onclick="openAvatarCustomiser()" title="Customise avatar">
-            <div id="home-avatar-display"></div>
-          </div>
-          <div class="avatar-edit-hint">tap to customise</div>
+        <div id="home-ach-body" style="margin-top:14px">
+          <div class="ach-grid" id="home-ach-list"></div>
         </div>
-      </div>
-
-      <!-- Achievements card -->
-      <div class="home-card" id="home-ach-card">
-        <div class="home-card-title" style="display:flex;align-items:center;justify-content:space-between">
-          <span>🏆 Achievements</span>
-          <span id="ach-progress" style="font-size:0.68rem;color:var(--muted)">0 / 0</span>
-        </div>
-        <div class="ach-grid" id="home-ach-body"></div>
-      </div>
-
-      <!-- Shop card -->
-      <div class="home-card home-full-width" id="home-shop-card">
-        <div class="home-card-title" style="display:flex;align-items:center;justify-content:space-between">
-          <span>🛍️ Avatar Shop</span>
-          <span class="gem-badge"><span class="gem-icon">💎</span><span id="shop-gems-display">0</span></span>
-        </div>
-        <div class="shop-tabs">
-          <button class="shop-tab active" id="shopTab-hats"   onclick="shopTab('hats')">🎩 Hats</button>
-          <button class="shop-tab"        id="shopTab-shirts" onclick="shopTab('shirts')">👕 Shirts</button>
-          <button class="shop-tab"        id="shopTab-bg"     onclick="shopTab('bg')">🖼️ Frames</button>
-          <button class="shop-tab"        id="shopTab-acc"    onclick="shopTab('acc')">✨ Accessories</button>
-        </div>
-        <div class="shop-grid" id="shop-grid-body"></div>
       </div>
 
       <!-- Leaderboard card -->
@@ -976,9 +923,8 @@ function showHome() {
 
   // Show dev card for any dev tier
   const devCard = document.getElementById('home-dev-card');
-  if (devCard) devCard.style.display = isAnyDev() ? 'block' : 'none';
-  const homeDevTitle = document.getElementById('home-dev-card-title');
-  if (homeDevTitle) homeDevTitle.textContent = isSuperDev() ? '🧑‍💻 Dev Tools' : '🎮 Admin Tools';
+  if (devCard) devCard.style.display = isSuperDev() ? 'block' : 'none';
+
 
 
   // Apply superdev-only visibility within the card
@@ -1015,13 +961,14 @@ function showHome() {
     }).join('');
   }
 
-  // Refresh gem / achievement / avatar / shop panels
+  // Refresh gems + achievements
   if (currentUser?.username) {
-    refreshAvatarDisplay(currentUser.username);
     refreshGemDisplays(currentUser.username);
     renderAchievements(currentUser.username);
-    refreshShop(currentUser.username);
   }
+  // Show achievements card for non-teacher logged-in users
+  const achCard = document.getElementById('home-ach-card');
+  if (achCard) achCard.style.display = currentUser?.role !== 'superdev' || true ? 'block' : 'none';
 
   document.getElementById('home-screen').classList.add('show');
 }
@@ -1219,6 +1166,15 @@ function sbStatus(msg, ok=true) {
   if (el) { el.textContent = msg; el.style.color = color; }
   const el2 = document.getElementById('home-dev-sb-status');
   if (el2) { el2.textContent = msg; el2.style.color = color; }
+}
+
+function homeAchToggle() {
+  const body = document.getElementById('home-ach-body');
+  const btn  = document.getElementById('home-ach-toggle');
+  if (!body || !btn) return;
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  btn.textContent = open ? '▸' : '▾';
 }
 
 function homeDevToggle() {
@@ -1516,13 +1472,9 @@ function _finishLogin(user, role) {
       });
     }
 
-    sbPullPlayerProfile(user).then(() => {
-      refreshAvatarDisplay(user);
-      refreshGemDisplays(user);
-      renderAchievements(user);
-      refreshShop(user);
-      showHome();
-    });
+    sbPullGems(user);
+    sbPullAchievements(user);
+    showHome();
     fetchLatestUpdate();
   });
 }
@@ -3145,6 +3097,21 @@ async function sbSyncGems(username, balance) {
     });
   } catch {}
 }
+async function sbPullAchievements(username) {
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/achievements?username=eq.${encodeURIComponent(username)}`,
+      { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } }
+    );
+    const rows = await res.json();
+    if (rows?.length) {
+      const existing = getEarnedAchievements(username);
+      const merged   = [...new Set([...existing, ...rows.map(r=>r.achievement_id)])];
+      saveEarnedAchievements(username, merged);
+    }
+  } catch {}
+}
+
 async function sbPullGems(username) {
   try {
     const res = await fetch(
@@ -3302,7 +3269,7 @@ async function sbSyncAchievements(username, ids) {
 
 function renderAchievements(username) {
   const earned = getEarnedAchievements(username);
-  const body   = document.getElementById('home-ach-body');
+  const body   = document.getElementById('home-ach-list');
   const prog   = document.getElementById('ach-progress');
   if (!body) return;
   prog.textContent = `${earned.length} / ${ACHIEVEMENTS.length}`;
@@ -3320,512 +3287,9 @@ function renderAchievements(username) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// AVATAR SYSTEM — pixel-art style SVG rendered from avatar data
-// ═══════════════════════════════════════════════════════════════════════════
-const AVATAR_DEFAULTS = { skin:'#FFCC99', hair:'#4A2E1A', eyeCol:'#3B5998', mouth:'smile', hatId:'', shirtId:'', bgId:'', accId:'' };
+// ── Pull gems/achievements on login ──
 
-const SKIN_TONES   = ['#FFE0B2','#FFCC99','#E8A87C','#C68642','#8D5524','#4A2500'];
-const HAIR_COLOURS = ['#F5E6C8','#F0C040','#CC8833','#8B4513','#4A2E1A','#1A1A1A','#E84545','#9C27B0','#2196F3','#3DD68C'];
-const EYE_COLOURS  = ['#3B5998','#2E8B57','#E84545','#8B4513','#00838F','#9C27B0','#E67E22','#1A1A1A'];
-const MOUTHS       = ['smile','big_smile','straight','sad','surprised'];
 
-function getAvatarData(username) {
-  try { return { ...AVATAR_DEFAULTS, ...JSON.parse(localStorage.getItem(`set_av_${username}`) || '{}') }; }
-  catch { return { ...AVATAR_DEFAULTS }; }
-}
-function saveAvatarData(username, data) {
-  localStorage.setItem(`set_av_${username}`, JSON.stringify(data));
-}
-
-function renderAvatarSVG(av, size=100) {
-  const s  = size;
-  const sw = Math.max(1.5, s * 0.028); // stroke width scales with size
-
-  // Layout — Quizizz style: big round head, small body blob at bottom
-  const cx   = s * 0.5;
-  const cy   = s * 0.5;
-  // Head is the dominant element — large circle, centred slightly up
-  const hcx  = cx;
-  const hcy  = s * 0.42;
-  const hr   = s * 0.32;  // head radius — big!
-
-  // Background frame
-  const bg      = av.bgId ? SHOP_ITEMS.find(i=>i.id===av.bgId) : null;
-  const bgSVG   = bg ? renderBgFrame(s, bg) : `<circle cx="${cx}" cy="${cy}" r="${s*0.49}" fill="#1e1e24" opacity="0.0"/>`;
-
-  // Shirt / body colour
-  const shirt   = av.shirtId ? SHOP_ITEMS.find(i=>i.id===av.shirtId) : null;
-  const bodyCol = shirt ? shirt.fill : '#607D8B';
-  const bodyDark= shirt ? darkenHex(shirt.fill, 25) : '#455A64';
-
-  // Hat
-  const hat    = av.hatId ? SHOP_ITEMS.find(i=>i.id===av.hatId) : null;
-  const hatSVG = hat ? hat.svg(s, hcx, hcy, hr, sw) : '';
-
-  // Accessory
-  const acc    = av.accId ? SHOP_ITEMS.find(i=>i.id===av.accId) : null;
-  const accSVG = acc ? acc.svg(s, hcx, hcy, hr, sw) : '';
-
-  // Skin shadow/shading
-  const skinDark = darkenHex(av.skin, 20);
-
-  // Hair — drawn as a dome behind head
-  const hairSVG = buildHairSVG(hcx, hcy, hr, av.hair, sw);
-
-  // Eyes — Quizizz style: large white ovals, bold outline, big coloured iris, white highlight
-  const ex1  = hcx - hr * 0.33;
-  const ex2  = hcx + hr * 0.33;
-  const ey   = hcy - hr * 0.04;
-  const erx  = hr * 0.22;
-  const ery  = hr * 0.26;
-  const eyesSVG = `
-    <ellipse cx="${ex1}" cy="${ey}" rx="${erx}" ry="${ery}" fill="white" stroke="#1a1a1a" stroke-width="${sw}"/>
-    <ellipse cx="${ex2}" cy="${ey}" rx="${erx}" ry="${ery}" fill="white" stroke="#1a1a1a" stroke-width="${sw}"/>
-    <ellipse cx="${ex1}" cy="${ey+ery*0.1}" rx="${erx*0.62}" ry="${ery*0.62}" fill="${av.eyeCol}"/>
-    <ellipse cx="${ex2}" cy="${ey+ery*0.1}" rx="${erx*0.62}" ry="${ery*0.62}" fill="${av.eyeCol}"/>
-    <ellipse cx="${ex1}" cy="${ey+ery*0.15}" rx="${erx*0.34}" ry="${ery*0.34}" fill="#1a1a1a"/>
-    <ellipse cx="${ex2}" cy="${ey+ery*0.15}" rx="${erx*0.34}" ry="${ery*0.34}" fill="#1a1a1a"/>
-    <ellipse cx="${ex1-erx*0.22}" cy="${ey-ery*0.18}" rx="${erx*0.14}" ry="${ery*0.14}" fill="white" opacity="0.9"/>
-    <ellipse cx="${ex2-erx*0.22}" cy="${ey-ery*0.18}" rx="${erx*0.14}" ry="${ery*0.14}" fill="white" opacity="0.9"/>`;
-
-  // Cheeks — rosy blush circles
-  const cheeksSVG = `
-    <ellipse cx="${ex1-erx*0.6}" cy="${ey+ery*0.8}" rx="${hr*0.15}" ry="${hr*0.09}" fill="#FF9999" opacity="0.55"/>
-    <ellipse cx="${ex2+erx*0.6}" cy="${ey+ery*0.8}" rx="${hr*0.15}" ry="${hr*0.09}" fill="#FF9999" opacity="0.55"/>`;
-
-  // Nose — two small dots like Quizizz
-  const noseSVG = `
-    <ellipse cx="${hcx-hr*0.1}" cy="${hcy+hr*0.18}" rx="${hr*0.055}" ry="${hr*0.04}" fill="${skinDark}" opacity="0.5"/>
-    <ellipse cx="${hcx+hr*0.1}" cy="${hcy+hr*0.18}" rx="${hr*0.055}" ry="${hr*0.04}" fill="${skinDark}" opacity="0.5"/>`;
-
-  // Mouth
-  const mouthSVG = buildMouthSVG(av.mouth, hcx, hcy, hr, sw);
-
-  // Body / torso — Quizizz has a small round body blob peeking from the bottom
-  const bdy    = hcy + hr * 0.75;
-  const bradx  = hr * 0.72;
-  const brady  = s * 0.22;
-  const armLx  = hcx - bradx * 0.85;
-  const armRx  = hcx + bradx * 0.85;
-  const armY   = bdy + brady * 0.1;
-  const bodySVG = `
-    <!-- Arms -->
-    <ellipse cx="${armLx}" cy="${armY}" rx="${hr*0.18}" ry="${hr*0.38}" fill="${bodyCol}" stroke="#1a1a1a" stroke-width="${sw}" transform="rotate(-20 ${armLx} ${armY})"/>
-    <ellipse cx="${armRx}" cy="${armY}" rx="${hr*0.18}" ry="${hr*0.38}" fill="${bodyCol}" stroke="#1a1a1a" stroke-width="${sw}" transform="rotate(20 ${armRx} ${armY})"/>
-    <!-- Body blob -->
-    <ellipse cx="${hcx}" cy="${bdy+brady*0.4}" rx="${bradx}" ry="${brady}" fill="${bodyCol}" stroke="#1a1a1a" stroke-width="${sw}"/>
-    <!-- Body shading line -->
-    <path d="M${hcx-bradx*0.5},${bdy+brady*0.15} Q${hcx},${bdy+brady*0.35} ${hcx+bradx*0.5},${bdy+brady*0.15}" fill="none" stroke="${bodyDark}" stroke-width="${sw*0.8}" opacity="0.4"/>`;
-
-  return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg" style="display:block">
-    <!-- Background -->
-    ${bgSVG}
-    <!-- Body (behind head) -->
-    ${bodySVG}
-    <!-- Hair back (behind head) -->
-    ${hairSVG.back}
-    <!-- Head -->
-    <circle cx="${hcx}" cy="${hcy}" r="${hr}" fill="${av.skin}" stroke="#1a1a1a" stroke-width="${sw}"/>
-    <!-- Skin shading -->
-    <circle cx="${hcx+hr*0.25}" cy="${hcy+hr*0.25}" r="${hr*0.4}" fill="${skinDark}" opacity="0.07"/>
-    <!-- Hair front -->
-    ${hairSVG.front}
-    <!-- Eyes -->
-    ${eyesSVG}
-    <!-- Cheeks -->
-    ${cheeksSVG}
-    <!-- Nose -->
-    ${noseSVG}
-    <!-- Mouth -->
-    ${mouthSVG}
-    <!-- Hat -->
-    ${hatSVG}
-    <!-- Accessory -->
-    ${accSVG}
-  </svg>`;
-}
-
-function darkenHex(hex, pct) {
-  let c = hex.replace('#','');
-  if (c.length===3) c=c.split('').map(x=>x+x).join('');
-  let r=parseInt(c.slice(0,2),16), g=parseInt(c.slice(2,4),16), b=parseInt(c.slice(4,6),16);
-  r=Math.max(0,r-pct); g=Math.max(0,g-pct); b=Math.max(0,b-pct);
-  return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
-}
-
-function buildHairSVG(hcx, hcy, hr, hairCol, sw) {
-  const dark = darkenHex(hairCol, 30);
-  const back = `
-    <ellipse cx="${hcx}" cy="${hcy-hr*0.1}" rx="${hr*1.05}" ry="${hr*1.08}" fill="${hairCol}" stroke="#1a1a1a" stroke-width="${sw}"/>`;
-  const front = `
-    <!-- Hair top dome -->
-    <path d="M${hcx-hr*0.95},${hcy-hr*0.1}
-             Q${hcx-hr*0.9},${hcy-hr*1.35}
-               ${hcx},${hcy-hr*1.22}
-             Q${hcx+hr*0.9},${hcy-hr*1.35}
-               ${hcx+hr*0.95},${hcy-hr*0.1}"
-          fill="${hairCol}" stroke="#1a1a1a" stroke-width="${sw}"/>
-    <!-- Hair highlight -->
-    <path d="M${hcx-hr*0.3},${hcy-hr*1.15} Q${hcx},${hcy-hr*1.3} ${hcx+hr*0.25},${hcy-hr*1.12}"
-          fill="none" stroke="white" stroke-width="${sw*0.7}" opacity="0.25" stroke-linecap="round"/>`;
-  return { back, front };
-}
-
-function buildMouthSVG(type, hcx, hcy, hr, sw) {
-  const my = hcy + hr * 0.38;
-  const mw = hr * 0.42;
-  const t  = sw * 1.4;
-  if (type==='big_smile') {
-    return `<path d="M${hcx-mw},${my} Q${hcx},${my+hr*0.38} ${hcx+mw},${my}" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="${t}" stroke-linecap="round"/>
-            <path d="M${hcx-mw*0.85},${my+hr*0.04} Q${hcx},${my+hr*0.3} ${hcx+mw*0.85},${my+hr*0.04}" fill="white" stroke="none"/>`;
-  }
-  if (type==='smile') {
-    return `<path d="M${hcx-mw*0.8},${my} Q${hcx},${my+hr*0.28} ${hcx+mw*0.8},${my}" fill="none" stroke="#1a1a1a" stroke-width="${t}" stroke-linecap="round"/>`;
-  }
-  if (type==='straight') {
-    return `<line x1="${hcx-mw*0.7}" y1="${my+hr*0.05}" x2="${hcx+mw*0.7}" y2="${my+hr*0.05}" stroke="#1a1a1a" stroke-width="${t}" stroke-linecap="round"/>`;
-  }
-  if (type==='sad') {
-    return `<path d="M${hcx-mw*0.8},${my+hr*0.22} Q${hcx},${my-hr*0.06} ${hcx+mw*0.8},${my+hr*0.22}" fill="none" stroke="#1a1a1a" stroke-width="${t}" stroke-linecap="round"/>`;
-  }
-  if (type==='surprised') {
-    return `<ellipse cx="${hcx}" cy="${my+hr*0.1}" rx="${mw*0.45}" ry="${hr*0.22}" fill="#1a1a1a"/>
-            <ellipse cx="${hcx}" cy="${my+hr*0.15}" rx="${mw*0.3}" ry="${hr*0.14}" fill="white" opacity="0.25"/>`;
-  }
-  return '';
-}
-
-function renderBgFrame(s, bg) {
-  const cx = s*0.5, cy = s*0.5, r = s*0.49;
-  if (bg.id==='bg_star') {
-    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#0a0a1e"/>
-            <circle cx="${cx*0.4}" cy="${cy*0.35}" r="${s*0.015}" fill="white" opacity="0.7"/>
-            <circle cx="${cx*1.6}" cy="${cy*0.5}" r="${s*0.01}" fill="white" opacity="0.6"/>
-            <circle cx="${cx*0.7}" cy="${cy*1.4}" r="${s*0.012}" fill="white" opacity="0.5"/>
-            <circle cx="${cx*1.5}" cy="${cy*1.5}" r="${s*0.018}" fill="white" opacity="0.8"/>`;
-  }
-  if (bg.id==='bg_rainbow') {
-    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#FFE0E0"/>
-            <path d="M${cx-r},${cy} A${r},${r} 0 0,1 ${cx+r},${cy}" fill="none" stroke="#FF6B6B" stroke-width="${s*0.045}" opacity="0.5"/>
-            <path d="M${cx-r*0.85},${cy} A${r*0.85},${r*0.85} 0 0,1 ${cx+r*0.85},${cy}" fill="none" stroke="#FFD93D" stroke-width="${s*0.045}" opacity="0.5"/>
-            <path d="M${cx-r*0.7},${cy} A${r*0.7},${r*0.7} 0 0,1 ${cx+r*0.7},${cy}" fill="none" stroke="#6BCB77" stroke-width="${s*0.045}" opacity="0.5"/>`;
-  }
-  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${bg.fill}" opacity="0.25"/>
-          <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${bg.fill}" stroke-width="${s*0.04}" opacity="0.6"/>`;
-}
-
-// Render avatar for a given username (uses their stored data)
-function renderAvatarSVGForUser(username, size=40) {
-  const av = getAvatarData(username);
-  return renderAvatarSVG(av, size);
-}
-
-function refreshAvatarDisplay(username) {
-  const av  = getAvatarData(username);
-  const el  = document.getElementById('home-avatar-display');
-  if (el) el.innerHTML = renderAvatarSVG(av, 120);
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// SHOP ITEMS
-// ═══════════════════════════════════════════════════════════════════════════
-function hatSVGFactory(fill, brimFill, style) {
-  return (s, hcx, hcy, hr, sw) => {
-    const topY = hcy - hr;
-    if (style==='top') {
-      return `<rect x="${hcx-hr*0.55}" y="${topY-hr*0.8}" width="${hr*1.1}" height="${hr*0.82}" rx="${hr*0.08}" fill="${fill}" stroke="#1a1a1a" stroke-width="${sw}"/>
-              <rect x="${hcx-hr*0.82}" y="${topY-hr*0.02}" width="${hr*1.64}" height="${hr*0.2}" rx="${hr*0.06}" fill="${brimFill}" stroke="#1a1a1a" stroke-width="${sw}"/>`;
-    }
-    if (style==='beanie') {
-      return `<ellipse cx="${hcx}" cy="${topY-hr*0.05}" rx="${hr*1.0}" ry="${hr*0.65}" fill="${fill}" stroke="#1a1a1a" stroke-width="${sw}"/>
-              <ellipse cx="${hcx}" cy="${topY+hr*0.55}" rx="${hr*1.02}" ry="${hr*0.2}" fill="${brimFill}" stroke="#1a1a1a" stroke-width="${sw}"/>
-              <circle cx="${hcx}" cy="${topY-hr*0.62}" r="${hr*0.14}" fill="${brimFill}" stroke="#1a1a1a" stroke-width="${sw*0.7}"/>`;
-    }
-    if (style==='cowboy') {
-      return `<ellipse cx="${hcx}" cy="${topY-hr*0.05}" rx="${hr*0.72}" ry="${hr*0.6}" fill="${fill}" stroke="#1a1a1a" stroke-width="${sw}"/>
-              <path d="M${hcx-hr*1.3},${topY+hr*0.5} Q${hcx-hr*0.7},${topY+hr*0.18} ${hcx},${topY+hr*0.22} Q${hcx+hr*0.7},${topY+hr*0.18} ${hcx+hr*1.3},${topY+hr*0.5}" fill="${brimFill}" stroke="#1a1a1a" stroke-width="${sw}"/>`;
-    }
-    if (style==='crown') {
-      const pts = `${hcx-hr*0.7},${topY+hr*0.08} ${hcx-hr*0.55},${topY-hr*0.7} ${hcx-hr*0.18},${topY-hr*0.3} ${hcx},${topY-hr*0.8} ${hcx+hr*0.18},${topY-hr*0.3} ${hcx+hr*0.55},${topY-hr*0.7} ${hcx+hr*0.7},${topY+hr*0.08}`;
-      return `<polygon points="${pts}" fill="${fill}" stroke="#1a1a1a" stroke-width="${sw}" stroke-linejoin="round"/>
-              <circle cx="${hcx-hr*0.35}" cy="${topY-hr*0.62}" r="${hr*0.1}" fill="${brimFill}"/>
-              <circle cx="${hcx}" cy="${topY-hr*0.72}" r="${hr*0.1}" fill="${brimFill}"/>
-              <circle cx="${hcx+hr*0.35}" cy="${topY-hr*0.62}" r="${hr*0.1}" fill="${brimFill}"/>`;
-    }
-    if (style==='party') {
-      return `<polygon points="${hcx},${topY-hr*1.0} ${hcx-hr*0.65},${topY+hr*0.06} ${hcx+hr*0.65},${topY+hr*0.06}" fill="${fill}" stroke="#1a1a1a" stroke-width="${sw}" stroke-linejoin="round"/>
-              <circle cx="${hcx}" cy="${topY-hr*1.02}" r="${hr*0.12}" fill="${brimFill}" stroke="#1a1a1a" stroke-width="${sw*0.7}"/>
-              <circle cx="${hcx-hr*0.3}" cy="${topY-hr*0.35}" r="${hr*0.07}" fill="${brimFill}" opacity="0.8"/>
-              <circle cx="${hcx+hr*0.28}" cy="${topY-hr*0.55}" r="${hr*0.06}" fill="white" opacity="0.8"/>`;
-    }
-    return '';
-  };
-}
-
-function accSVGFactory(style) {
-  return (s, hcx, hcy, hr, sw) => {
-    // Eye positions match the avatar eye layout
-    const ex1 = hcx - hr*0.33, ex2 = hcx + hr*0.33;
-    const ey  = hcy - hr*0.04;
-    const er  = hr*0.22;
-    if (style==='glasses') {
-      return `<circle cx="${ex1}" cy="${ey}" r="${er*1.08}" fill="none" stroke="#555" stroke-width="${sw*1.1}"/>
-              <circle cx="${ex2}" cy="${ey}" r="${er*1.08}" fill="none" stroke="#555" stroke-width="${sw*1.1}"/>
-              <line x1="${ex1+er*1.05}" y1="${ey}" x2="${ex2-er*1.05}" y2="${ey}" stroke="#555" stroke-width="${sw}"/>
-              <line x1="${ex1-er*1.05}" y1="${ey}" x2="${ex1-er*1.4}" y2="${ey-hr*0.06}" stroke="#555" stroke-width="${sw}"/>
-              <line x1="${ex2+er*1.05}" y1="${ey}" x2="${ex2+er*1.4}" y2="${ey-hr*0.06}" stroke="#555" stroke-width="${sw}"/>`;
-    }
-    if (style==='sunglasses') {
-      return `<rect x="${ex1-er*1.1}" y="${ey-er*0.9}" width="${er*2.2}" height="${er*1.6}" rx="${er*0.5}" fill="#222" fill-opacity="0.88" stroke="#444" stroke-width="${sw}"/>
-              <rect x="${ex2-er*1.1}" y="${ey-er*0.9}" width="${er*2.2}" height="${er*1.6}" rx="${er*0.5}" fill="#222" fill-opacity="0.88" stroke="#444" stroke-width="${sw}"/>
-              <line x1="${ex1+er*1.1}" y1="${ey}" x2="${ex2-er*1.1}" y2="${ey}" stroke="#444" stroke-width="${sw*1.2}"/>
-              <line x1="${ex1-er*1.1}" y1="${ey}" x2="${ex1-er*1.5}" y2="${ey-hr*0.06}" stroke="#444" stroke-width="${sw}"/>
-              <line x1="${ex2+er*1.1}" y1="${ey}" x2="${ex2+er*1.5}" y2="${ey-hr*0.06}" stroke="#444" stroke-width="${sw}"/>
-              <ellipse cx="${ex1}" cy="${ey-er*0.2}" rx="${er*0.5}" ry="${er*0.3}" fill="white" opacity="0.12"/>
-              <ellipse cx="${ex2}" cy="${ey-er*0.2}" rx="${er*0.5}" ry="${er*0.3}" fill="white" opacity="0.12"/>`;
-    }
-    if (style==='star') {
-      return `<text x="${hcx+hr*0.62}" y="${hcy-hr*0.55}" font-size="${hr*0.5}" fill="#F5C842" stroke="#1a1a1a" stroke-width="${sw*0.5}" paint-order="stroke">⭐</text>`;
-    }
-    if (style==='heart') {
-      return `<text x="${hcx+hr*0.62}" y="${hcy-hr*0.55}" font-size="${hr*0.5}" fill="#E84545" stroke="#1a1a1a" stroke-width="${sw*0.5}" paint-order="stroke">❤️</text>`;
-    }
-    if (style==='bow') {
-      const bx = hcx + hr*0.5, by = hcy - hr*1.08;
-      return `<path d="M${bx},${by} L${bx-hr*0.28},${by-hr*0.22} L${bx-hr*0.24},${by+hr*0.06} Z" fill="#ec4899" stroke="#1a1a1a" stroke-width="${sw*0.7}"/>
-              <path d="M${bx},${by} L${bx+hr*0.28},${by-hr*0.22} L${bx+hr*0.24},${by+hr*0.06} Z" fill="#ec4899" stroke="#1a1a1a" stroke-width="${sw*0.7}"/>
-              <circle cx="${bx}" cy="${by}" r="${hr*0.08}" fill="#ff80c0" stroke="#1a1a1a" stroke-width="${sw*0.6}"/>`;
-    }
-    return '';
-  };
-}
-
-const SHOP_ITEMS = [
-  // ── Hats ──────────────────────────────────────────
-  { id:'hat_top',     cat:'hats',   name:'Top Hat',      price:30,  preview:'🎩', fill:'#1a1a1a', svg: hatSVGFactory('#1a1a1a','#333','top') },
-  { id:'hat_beanie',  cat:'hats',   name:'Beanie',       price:20,  preview:'🧢', fill:'#E84545', svg: hatSVGFactory('#E84545','#c22','beanie') },
-  { id:'hat_cowboy',  cat:'hats',   name:'Cowboy Hat',   price:35,  preview:'🤠', fill:'#8B6914', svg: hatSVGFactory('#8B6914','#6b4e0e','cowboy') },
-  { id:'hat_crown',   cat:'hats',   name:'Crown',        price:80,  preview:'👑', fill:'#F5C842', svg: hatSVGFactory('#F5C842','#fff','crown') },
-  { id:'hat_party',   cat:'hats',   name:'Party Hat',    price:15,  preview:'🎉', fill:'#A855F7', svg: hatSVGFactory('#A855F7','#F5C842','party') },
-  { id:'hat_blue',    cat:'hats',   name:'Blue Beanie',  price:20,  preview:'🔵', fill:'#3B8BEB', svg: hatSVGFactory('#3B8BEB','#2563eb','beanie') },
-  { id:'hat_green',   cat:'hats',   name:'Green Beanie', price:20,  preview:'🟢', fill:'#3DD68C', svg: hatSVGFactory('#3DD68C','#2db870','beanie') },
-  // ── Shirts ────────────────────────────────────────
-  { id:'shirt_red',   cat:'shirts', name:'Red Shirt',    price:15,  preview:'🔴', fill:'#E84545' },
-  { id:'shirt_blue',  cat:'shirts', name:'Blue Shirt',   price:15,  preview:'🔵', fill:'#3B8BEB' },
-  { id:'shirt_green', cat:'shirts', name:'Green Shirt',  price:15,  preview:'🟢', fill:'#3DD68C' },
-  { id:'shirt_purple',cat:'shirts', name:'Purple Shirt', price:15,  preview:'🟣', fill:'#A855F7' },
-  { id:'shirt_gold',  cat:'shirts', name:'Gold Shirt',   price:30,  preview:'🟡', fill:'#F5C842' },
-  { id:'shirt_black', cat:'shirts', name:'Black Shirt',  price:20,  preview:'⚫', fill:'#1a1a1a' },
-  { id:'shirt_rainbow',cat:'shirts',name:'Rainbow Shirt',price:60,  preview:'🌈', fill:'url(#rainbowGrad)' },
-  // ── Backgrounds ────────────────────────────────────
-  { id:'bg_gold',     cat:'bg',     name:'Gold Aura',    price:40,  preview:'✨', fill:'#F5C842' },
-  { id:'bg_red',      cat:'bg',     name:'Red Aura',     price:30,  preview:'🔴', fill:'#E84545' },
-  { id:'bg_blue',     cat:'bg',     name:'Blue Aura',    price:30,  preview:'🔵', fill:'#3B8BEB' },
-  { id:'bg_purple',   cat:'bg',     name:'Purple Aura',  price:30,  preview:'🟣', fill:'#A855F7' },
-  { id:'bg_rainbow',  cat:'bg',     name:'Rainbow Aura', price:100, preview:'🌈', fill:'#FF6B6B' },
-  { id:'bg_star',     cat:'bg',     name:'Starfield',    price:80,  preview:'⭐', fill:'#1a1a3a' },
-  // ── Accessories ────────────────────────────────────
-  { id:'acc_glasses', cat:'acc',    name:'Glasses',      price:25,  preview:'👓', fill:'#555', svg: accSVGFactory('glasses') },
-  { id:'acc_sunglass',cat:'acc',    name:'Sunglasses',   price:35,  preview:'🕶️', fill:'#333', svg: accSVGFactory('sunglasses') },
-  { id:'acc_star',    cat:'acc',    name:'Star Sticker', price:15,  preview:'⭐', fill:'#F5C842',svg: accSVGFactory('star') },
-  { id:'acc_heart',   cat:'acc',    name:'Heart Sticker',price:15,  preview:'❤️', fill:'#E84545',svg: accSVGFactory('heart') },
-  { id:'acc_bow',     cat:'acc',    name:'Hair Bow',     price:20,  preview:'🎀', fill:'#ec4899',svg: accSVGFactory('bow') },
-];
-
-function getInventory(username) {
-  try { return JSON.parse(localStorage.getItem(`set_inv_${username}`) || '[]'); } catch { return []; }
-}
-function saveInventory(username, inv) {
-  localStorage.setItem(`set_inv_${username}`, JSON.stringify(inv));
-}
-function ownsItem(username, itemId) {
-  return getInventory(username).includes(itemId);
-}
-function buyItem(username, itemId) {
-  const item = SHOP_ITEMS.find(i=>i.id===itemId);
-  if (!item) return;
-  if (ownsItem(username, itemId)) { equipItem(username, itemId); return; }
-  if (!spendGems(username, item.price)) {
-    showGemToast(-item.price+getGems(username), 'not enough gems!'); return;
-  }
-  const inv = getInventory(username);
-  inv.push(itemId);
-  saveInventory(username, inv);
-  equipItem(username, itemId);
-  refreshShop(username);
-  refreshAvatarDisplay(username);
-  // Sync to Supabase
-  fetch(`${SB_URL}/rest/v1/inventory`, {
-    method:'POST', headers:{...SB_HEADERS,'Prefer':'resolution=ignore-duplicates,return=minimal'},
-    body: JSON.stringify({ username, item_id: itemId })
-  }).catch(()=>{});
-}
-function equipItem(username, itemId) {
-  const item = SHOP_ITEMS.find(i=>i.id===itemId);
-  if (!item) return;
-  const av = getAvatarData(username);
-  const slotMap = { hats:'hatId', shirts:'shirtId', bg:'bgId', acc:'accId' };
-  const slot = slotMap[item.cat];
-  if (!slot) return;
-  // Toggle off if already equipped
-  av[slot] = av[slot]===itemId ? '' : itemId;
-  saveAvatarData(username, av);
-  refreshAvatarDisplay(username);
-  refreshShop(username);
-  // Sync equipped to Supabase
-  fetch(`${SB_URL}/rest/v1/equipped`, {
-    method:'POST', headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates,return=minimal'},
-    body: JSON.stringify({ username, slot, item_id: av[slot]||'' })
-  }).catch(()=>{});
-}
-
-// ── Shop UI ────────────────────────────────────────────────────────────────
-let currentShopTab = 'hats';
-function shopTab(cat) {
-  currentShopTab = cat;
-  ['hats','shirts','bg','acc'].forEach(t => {
-    document.getElementById(`shopTab-${t}`)?.classList.toggle('active', t===cat);
-  });
-  refreshShop(currentUser?.username);
-}
-function refreshShop(username) {
-  const grid = document.getElementById('shop-grid-body');
-  if (!grid || !username) return;
-  const items = SHOP_ITEMS.filter(i=>i.cat===currentShopTab);
-  const av    = getAvatarData(username);
-  const slotMap = { hats:'hatId', shirts:'shirtId', bg:'bgId', acc:'accId' };
-  grid.innerHTML = items.map(item => {
-    const owned    = ownsItem(username, item.id);
-    const slotKey  = slotMap[item.cat];
-    const equipped = av[slotKey]===item.id;
-    const canAfford= getGems(username) >= item.price;
-    return `<div class="shop-item${owned?' owned':''}${equipped?' equipped':''}"
-      onclick="${owned ? `equipItem('${username}','${item.id}')` : `buyItem('${username}','${item.id}')`}"
-      title="${owned?(equipped?'Unequip':'Equip'):`Buy for ${item.price} 💎`}">
-      <span class="shop-item-preview">${item.preview}</span>
-      <span class="shop-item-name">${item.name}</span>
-      ${owned
-        ? (equipped ? '<span class="shop-item-eq-badge">ON</span>' : '<span class="shop-item-owned-badge">✓</span>')
-        : `<span class="shop-item-price${canAfford?'':';opacity:0.4'}">💎 ${item.price}</span>`}
-    </div>`;
-  }).join('');
-  // Update gem displays
-  refreshGemDisplays(username);
-}
-
-// ── Avatar Customiser Modal ────────────────────────────────────────────────
-function openAvatarCustomiser() {
-  const username = currentUser?.username;
-  if (!username) return;
-  const av = getAvatarData(username);
-
-  const swatches = (list, currentVal, key) => list.map(c =>
-    `<div class="av-colour-swatch${currentVal===c?' selected':''}"
-      style="background:${c}"
-      onclick="updateAvatarField('${username}','${key}','${c}',this)"></div>`
-  ).join('');
-
-  const mouthBtns = MOUTHS.map(m =>
-    `<button onclick="updateAvatarMouth('${username}','${m}',this)"
-      style="padding:5px 12px;border-radius:6px;background:${av.mouth===m?'var(--surface2)':'var(--bg)'};border:1px solid ${av.mouth===m?'var(--gold)':'var(--border)'};color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;cursor:pointer">${m}</button>`
-  ).join('');
-
-  showModal({
-    title: 'Customise Avatar',
-    subtitle: 'Choose your look',
-    body: `
-      <div style="display:flex;justify-content:center;margin-bottom:16px">
-        <div id="av-modal-preview">${renderAvatarSVG(av, 100)}</div>
-      </div>
-      <div class="av-section">
-        <div class="av-section-label">Skin Tone</div>
-        <div class="av-colour-row">${swatches(SKIN_TONES, av.skin, 'skin')}</div>
-      </div>
-      <div class="av-section">
-        <div class="av-section-label">Hair Colour</div>
-        <div class="av-colour-row">${swatches(HAIR_COLOURS, av.hair, 'hair')}</div>
-      </div>
-      <div class="av-section">
-        <div class="av-section-label">Eye Colour</div>
-        <div class="av-colour-row">${swatches(EYE_COLOURS, av.eyeCol, 'eyeCol')}</div>
-      </div>
-      <div class="av-section">
-        <div class="av-section-label">Expression</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">${mouthBtns}</div>
-      </div>`,
-    buttons: [{ label:'Done', cls:'primary' }]
-  });
-}
-function updateAvatarField(username, key, val, el) {
-  const av = getAvatarData(username);
-  av[key] = val;
-  saveAvatarData(username, av);
-  // Update swatch selection
-  el.closest('.av-colour-row')?.querySelectorAll('.av-colour-swatch').forEach(s=>s.classList.remove('selected'));
-  el.classList.add('selected');
-  // Update modal preview
-  document.getElementById('av-modal-preview').innerHTML = renderAvatarSVG(av, 100);
-  refreshAvatarDisplay(username);
-}
-function updateAvatarMouth(username, mouth, btn) {
-  const av = getAvatarData(username);
-  av.mouth = mouth;
-  saveAvatarData(username, av);
-  btn.closest('[style*="flex"]')?.querySelectorAll('button').forEach(b=>{
-    b.style.background=b===btn?'var(--surface2)':'var(--bg)';
-    b.style.borderColor=b===btn?'var(--gold)':'var(--border)';
-  });
-  document.getElementById('av-modal-preview').innerHTML = renderAvatarSVG(av, 100);
-  refreshAvatarDisplay(username);
-}
-
-// ── Pull inventory/gems/achievements from Supabase on login ────────────────
-async function sbPullPlayerProfile(username) {
-  // Pull gems
-  await sbPullGems(username);
-  // Pull inventory
-  try {
-    const res = await fetch(
-      `${SB_URL}/rest/v1/inventory?username=eq.${encodeURIComponent(username)}`,
-      { headers: { apikey:SB_KEY, Authorization:`Bearer ${SB_KEY}` } }
-    );
-    const rows = await res.json();
-    if (rows?.length) {
-      const existing = getInventory(username);
-      const merged   = [...new Set([...existing, ...rows.map(r=>r.item_id)])];
-      saveInventory(username, merged);
-    }
-  } catch {}
-  // Pull equipped
-  try {
-    const res = await fetch(
-      `${SB_URL}/rest/v1/equipped?username=eq.${encodeURIComponent(username)}`,
-      { headers: { apikey:SB_KEY, Authorization:`Bearer ${SB_KEY}` } }
-    );
-    const rows = await res.json();
-    if (rows?.length) {
-      const av = getAvatarData(username);
-      const slotMap = { hatId:'hatId', shirtId:'shirtId', bgId:'bgId', accId:'accId' };
-      rows.forEach(r => { if(slotMap[r.slot]) av[r.slot] = r.item_id; });
-      saveAvatarData(username, av);
-    }
-  } catch {}
-  // Pull achievements
-  try {
-    const res = await fetch(
-      `${SB_URL}/rest/v1/achievements?username=eq.${encodeURIComponent(username)}`,
-      { headers: { apikey:SB_KEY, Authorization:`Bearer ${SB_KEY}` } }
-    );
-    const rows = await res.json();
-    if (rows?.length) {
-      const existing = getEarnedAchievements(username);
-      const merged   = [...new Set([...existing, ...rows.map(r=>r.achievement_id)])];
-      saveEarnedAchievements(username, merged);
-    }
-  } catch {}
-}
-
-// End of script
 
 // ── PWA: SERVICE WORKER REGISTRATION ────────────────────
 if ('serviceWorker' in navigator) {
